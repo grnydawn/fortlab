@@ -1,27 +1,20 @@
 import fortlab
-import unittest
 
-# Command-line interface
-class TaskCLITests(unittest.TestCase):
 
-    def setUp(self):
+def test_basic():
 
-        self.prj = fortlab.Fortlab()
+    cmd = "input <1> --forward '<x=2>'"
+    ret = fortlab.main(cmd)
 
-    def tearDown(self):
-        pass
+    assert ret == 0
 
-    def test_basic(self):
+def test_print(capsys):
 
-        cmd = "input <1> --forward '<x=2>'"
-        ret = self.prj.main(cmd)
+    cmd = "input <1> --forward '<x=2>' -- print <x> <data>"
+    ret = fortlab.main(cmd)
 
-        self.assertEqual(ret, 0)
+    assert ret == 0
 
-    def test_print(self):
-
-        cmd = "input <1> --forward '<x=2>' -- print <x> <data>"
-        ret = self.prj.main(cmd)
-
-        self.assertEqual(ret, 0)
-
+    captured = capsys.readouterr()
+    assert captured.out == "2 1\n"
+    assert captured.err == ""

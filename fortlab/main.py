@@ -1,5 +1,5 @@
-from microapp.project import MicroappProject
+from microapp import Project
 
-class Fortlab(MicroappProject):
+class Fortlab(Project):
     _name_ = "fortlab"
     _version_ = "0.1.0"

@@ -28,7 +28,8 @@ def main():
         packages=[ "fortlab" ],
         include_package_data=True,
         install_requires=["twine"],
-        entry_points={ "console_scripts": console_scripts },
+        entry_points={ "console_scripts": console_scripts,
+            "microapp.projects": "fortlab = fortlab"},
         project_urls={
             "Bug Reports": "https://github.com/grnydawn/fortlab/issues",
             "Source": "https://github.com/grnydawn/fortlab",
