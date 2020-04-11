@@ -1,17 +1,18 @@
-import fortlab
+from fortlab import Fortlab
 
+prj = Fortlab()
 
 def test_basic():
 
     cmd = "input <1> --forward '<x=2>'"
-    ret = fortlab.main(cmd)
+    ret = prj.main(cmd)
 
     assert ret == 0
 
 def test_print(capsys):
 
     cmd = "input <1> --forward '<x=2>' -- print <x> <data>"
-    ret = fortlab.main(cmd)
+    ret = prj.main(cmd)
 
     assert ret == 0
 
