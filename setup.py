@@ -3,16 +3,18 @@
 def main():
 
     from setuptools import setup
+    from fortlab.main import Fortlab as flab
 
     console_scripts = ["fortlab=fortlab.__main__:main"]
+    install_requires = ["microapp>=0.1.11"]
 
     setup(
-        name="fortlab",
-        version="0.1.0",
-        description="Fortran Laboratory",
-        long_description="Tools for Analysis of Fortran Application and Source code",
-        author="Youngsung Kim",
-        author_email="youngsung.kim.act2@gmail.com",
+        name=flab._name_,
+        version=flab._version_,
+        description=flab._description_,
+        long_description=flab._long_description_,
+        author=flab._author_,
+        author_email=flab._author_email_,
         classifiers=[
             "Development Status :: 3 - Alpha",
             "Intended Audience :: Science/Research",
@@ -27,7 +29,7 @@ def main():
         keywords="fortlab",
         packages=[ "fortlab" ],
         include_package_data=True,
-        install_requires=["twine"],
+        install_requires=install_requires,
         entry_points={ "console_scripts": console_scripts,
             "microapp.projects": "fortlab = fortlab"},
         project_urls={
