@@ -59,7 +59,7 @@ lint: ## check style with flake8
 	flake8 ${NAME} tests
 
 test: ## run tests quickly with the default Python
-	pytest tests -v --pyargs fortlab
+	pytest ./tests -vv --pyargs fortlab
 
 test-all: ## run tests on every Python version with tox
 	tox
@@ -95,8 +95,8 @@ install: clean ## install the package to the active Python's site-packages
 	${PY} setup.py install
 
 dev-install: clean ## install the package locally
-	pip3.8 install -e ../microapp
-	pip3.8 install -e .
+	pip install -e ../microapp --user
+	pip install -e . --user
 	#${PY} setup.py develop
 	#${PY} setup.py develop --user
 
