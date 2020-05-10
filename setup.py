@@ -2,11 +2,11 @@
 
 def main():
 
-    from setuptools import setup
+    from setuptools import setup, find_packages
     from fortlab.main import Fortlab as flab
 
     console_scripts = ["fortlab=fortlab.__main__:main"]
-    install_requires = ["microapp>=0.1.11"]
+    install_requires = ["microapp>=0.1.12"] + flab._requires_
 
     setup(
         name=flab._name_,
@@ -26,8 +26,8 @@ def main():
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
         ],
-        keywords="fortlab",
-        packages=[ "fortlab" ],
+        keywords="microapp fortlab",
+        packages=find_packages(exclude=["tests"]),
         include_package_data=True,
         install_requires=install_requires,
         entry_points={ "console_scripts": console_scripts,

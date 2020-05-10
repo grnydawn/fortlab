@@ -5,7 +5,7 @@ import os
 import subprocess
 
 from microapp import App, run_command
-from fortlab import kgcompiler
+from fortlab.compile import kgcompiler
 
 
 STR_EX = b'execve('
@@ -25,6 +25,7 @@ class MicroappCompile(App):
         self.add_argument("--cleancmd", type=str, help="Software clean command.")
         self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--outdir", type=str, help="output directory")
+        self.add_argument("--savejson", type=str, help="save data in a josn-format file")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
 
         self.register_forward("data", help="json object")
@@ -38,6 +39,10 @@ class MicroappCompile(App):
         if args.workdir:
             cwd = args.workdir["_"]
             os.chdir(cwd)
+
+        outdir = cwd
+        if args.outdir:
+            outdir = args.outdir["_"]
 
         if args.cleancmd:
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
@@ -114,6 +119,11 @@ class MicroappCompile(App):
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
 
         self.add_forward(data=flags)
+
+        if args.savejson:
+            jsonfile = args.savejson["_"]
+            cmd = ["dict2json", "@flags", "-o", jsonfile]
+            run_command(self, cmd, fwds={"flags": flags})
 
         os.chdir(orgcwd)
 

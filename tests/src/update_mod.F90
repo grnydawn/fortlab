@@ -16,7 +16,9 @@ CONTAINS
 
         DO i=1, COL
             DO j=1, ROW
+!$kgen begin_callsite calc
                 CALL calc(i, j, output, out2, out3)                 !Calling kernel
+!$kgen end_callsite calc
             END DO
         END DO
         print *, 'SUM(output) = ', SUM(output)
