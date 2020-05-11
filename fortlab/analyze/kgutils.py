@@ -59,6 +59,10 @@ class KGName(object):
     def __str__(self):
         raise Exception('KGName')
 
+    def __hash__(self):
+        return id(self)
+
+
 def _get_namepath(stmt, external):
     if external:
         return EXTERNAL_NAMELEVEL_SEPERATOR.join([ a.name.lower() for a in stmt.ancestors() ])

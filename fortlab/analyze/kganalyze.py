@@ -1,7 +1,6 @@
 # kgen_analyze.py
 
 
-#from kgconfig import Config
 from fortlab.analyze.kgutils import KGName, ProgramException, UserException, traverse
 from fortlab.analyze.kgparse import KGGenType, SrcFile, ResState
 from fortlab.analyze.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, Actual_Arg_Spec_List, \
@@ -10,10 +9,10 @@ from collections import OrderedDict
 from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
 from fortlab.analyze.block_statements import SubProgramStatement, Associate
 
-def update_state_info(parent):
+def update_state_info(parent, config):
 
     def get_nodes(node, bag, depth):
-        from Fortran2003 import Name
+        from fortlab.analyze.Fortran2003 import Name
         if isinstance(node, Name) and node.string==bag['name'] and not node.parent in bag:
             anc = [node]
             while hasattr(node, 'parent'):
@@ -30,7 +29,7 @@ def update_state_info(parent):
                     if KGGenType.has_uname_out(uname, stmt.geninfo): continue
                     # select names for searching
                     respairs = []
-                    if req.originator in Config.callsite['stmts']:
+                    if req.originator in config["callsite"]['stmts']:
                         respairs.append((uname, req.originator))
                     elif isinstance(req.originator, Associate):
                         if uname in req.originator.assoc_map:
@@ -59,7 +58,7 @@ def update_state_info(parent):
                                     callobj = None
                                     subpobj = None
                                     if callname:
-                                        for org_uname, org_req in org.unknowns.iteritems():
+                                        for org_uname, org_req in org.unknowns.items():
                                             if org_uname.firstpartname()==callname:
                                                 if isinstance(org_req.res_stmts[0], SubProgramStatement):
                                                     callobj = anc
@@ -129,31 +128,31 @@ def update_state_info(parent):
                             if copied: break
 
     if hasattr(parent, 'parent'):
-        update_state_info(parent.parent)
+        update_state_info(parent.parent, config)
 
 
-def analyze():
+def analyze(config):
 
-    analyze_callsite()
+    analyze_callsite(config)
 
-def analyze_callsite():
+def analyze_callsite(config):
     from fortlab.analyze.block_statements import EndStatement, Subroutine, Function, Interface
     from fortlab.analyze.statements import SpecificBinding
-    from kgsearch import f2003_search_unknowns
+    from fortlab.analyze.kgsearch import f2003_search_unknowns
 
     # read source file that contains callsite stmt
-    cs_file = SrcFile(Config.callsite['filepath'])
+    cs_file = SrcFile(config["callsite"]['filepath'])
 
     #process_directive(cs_file.tree)
 
-    if len(Config.callsite['stmts'])==0:
+    if len(config["callsite"]['stmts'])==0:
         raise UserException('Can not find callsite')
 
     # ancestors of callsite stmt
-    ancs = Config.callsite['stmts'][0].ancestors()
+    ancs = config["callsite"]['stmts'][0].ancestors()
 
     # add geninfo for ancestors
-    prevstmt = Config.callsite['stmts'][0]
+    prevstmt = config["callsite"]['stmts'][0]
     prevname = None
 
     for anc in reversed(ancs):
@@ -173,25 +172,25 @@ def analyze_callsite():
         prevstmt = anc
 
     # populate parent block parameters
-    Config.parentblock['stmt'] = ancs[-1]
+    config["parentblock"]['stmt'] = ancs[-1]
 
     # populate top block parameters
-    Config.topblock['stmt'] = ancs[0]
+    config["topblock"]['stmt'] = ancs[0]
 
-    for cs_stmt in Config.callsite['stmts']:
+    for cs_stmt in config["callsite"]['stmts']:
         #resolve cs_stmt
-        f2003_search_unknowns(cs_stmt, cs_stmt.f2003)
-        for uname, req in cs_stmt.unknowns.iteritems():
-            cs_stmt.resolve(req)
+        f2003_search_unknowns(cs_stmt, cs_stmt.f2003, config)
+        for uname, req in cs_stmt.unknowns.items():
+            cs_stmt.resolve(req, config)
             if not req.res_stmts:
                 raise ProgramException('Resolution fail.')
 
 
     # update state info of callsite and its upper blocks
-    update_state_info(Config.parentblock['stmt'])
+    update_state_info(config["parentblock"]['stmt'], config)
 
     # update state info of modules
-    for modname, moddict in Config.modules.iteritems():
+    for modname, moddict in config["modules"].items():
         modstmt = moddict['stmt']
-        if modstmt != Config.topblock['stmt']:
-            update_state_info(moddict['stmt'])
+        if modstmt != config["topblock"]['stmt']:
+            update_state_info(moddict['stmt'], config)

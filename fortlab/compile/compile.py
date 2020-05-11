@@ -94,7 +94,11 @@ class MicroappCompile(App):
                                             srcs, incs, macros, openmp, options = compiler.parse_option(cmdlist, self._getpwd(env))
                                             if len(srcs)>0:
                                                 for src in srcs:
-                                                    flags[src] = (exepath, incs, macros, openmp, options)
+                                                    info = {"compiler": exepath, "include": incs,
+                                                            "macros": macros, "openmp": openmp,
+                                                            "options": options}
+                                                    #flags[src] = (exepath, incs, macros, openmp, options)
+                                                    flags[src] = info
                                                     if args.verbose:
                                                         print("Compiled: %s by %s" % (src, exepath))
                                                         print(str(options))
@@ -119,6 +123,15 @@ class MicroappCompile(App):
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
 
         self.add_forward(data=flags)
+#
+#                    if option=='include':
+#                        pathlist = Inc.get(section, option).split(':')
+#                        self.config["include"]['file'][realpath]['path'].extend(pathlist)
+#                    elif option in [ 'compiler', 'compiler_options' ]:
+#                        self.config["include"]['file'][realpath][option] = Inc.get(section, option)
+#                    else:
+#                        self.config["include"]['file'][realpath]['macro'][option] = Inc.get(section, option)
+#
 
         if args.savejson:
             jsonfile = args.savejson["_"]

@@ -568,9 +568,9 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
     a = AttributeHolder(interface_provides = {})
 
     # start of KGEN
-    def resolve(self, request):
-        from kgparse import ResState
-        from kgsearch import f2003_search_unknowns
+    def resolve(self, request, config):
+        from fortlab.analyze.kgparse import ResState
+        from fortlab.analyze.kgsearch import f2003_search_unknowns
 
         if request is None: return
 

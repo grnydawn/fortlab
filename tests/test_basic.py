@@ -56,7 +56,7 @@ def test_analyze(capsys):
     jsonfile = os.path.join(workdir, "test.json")
 
     cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
-    cmd += " -- analyze '%s'" % callsitefile
+    cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
     ret = prj.main(cmd)
 
     assert ret == 0

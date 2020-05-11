@@ -85,7 +85,6 @@ from io import StringIO
 from fortlab.analyze.sourceinfo import get_source_info, get_source_info_str
 from fortlab.analyze.splitline import String, string_replace_map, splitquote
 from fortlab.analyze.utils import is_name
-#from kgconfig import Config
 
 logger = logging.getLogger('kgen')
 
@@ -258,7 +257,7 @@ class Line(object):
 
     def parse_block(self, reader, cls, parent_cls):
         key = cls, tuple(parent_cls)
-        if not self.parse_cache.has_key(key):
+        if key not in self.parse_cache:
             #self.parse_cache[key] = None
             obj = cls(reader, parent_cls = parent_cls)
             self.parse_cache[key] = obj
@@ -383,9 +382,9 @@ class FortranReaderBase(object):
     def __repr__(self):
         return '%s(%r, %r, %r)' % (self.__class__.__name__, self.source, self.isfree, self.isstrict)
 
-    def find_module_source_file(self, mod_name):
+    def find_module_source_file(self, mod_name, config):
 
-        from utils import get_module_file, module_in_file
+        from fortlab.analyze.utils import get_module_file, module_in_file
 
         if self.source_only:
             for sf in self.source_only:
@@ -394,20 +393,20 @@ class FortranReaderBase(object):
         else:
             fn = None
 #            for d in self.include_dirs: # KGEN deletion
-            for d in self.include_dirs+Config.include['path']: # KGEN addition
+            for d in self.include_dirs+config["include"]['path']: # KGEN addition
                 fn = get_module_file(mod_name, d)
                 if fn is not None:
                     return fn
 
             # start of KGEN addition
             #if mod_name=='pio': import pdb; pdb.set_trace()
-            if Config.include['file'].has_key(self.id):
-                for path in Config.include['file'][self.id]['path']:
+            if self.id in config["include"]['file']:
+                for path in config["include"]['file'][self.id]['path']:
                     fn = get_module_file(mod_name, path) 
                     if fn is not None:
                         return fn
 
-            for fn in Config.include['file'].keys():
+            for fn in config["include"]['file'].keys():
                 if os.path.isfile(fn) and module_in_file(mod_name, fn):
                     if fn is not None:
                         return fn
@@ -614,7 +613,7 @@ class FortranReaderBase(object):
                 reader = item.reader
                 filename = item.line.strip()[7:].lstrip()[1:-1]
                 #include_dirs = self.include_dirs[:] # KGEN deletion
-                include_dirs = self.include_dirs+Config.include['path'] # KGEN addition
+                include_dirs = self.include_dirs+config["include"]['path'] # KGEN addition
                 path = filename
                 for incl_dir in include_dirs:
                     path = os.path.join(incl_dir, filename)

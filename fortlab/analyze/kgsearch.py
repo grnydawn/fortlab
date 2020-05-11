@@ -13,7 +13,6 @@ import fortlab.analyze.Fortran2003 as Fortran2003
 from fortlab.analyze.typedecl_statements import TypeDeclarationStatement, TypeStmt
 from fortlab.analyze.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
 from fortlab.analyze.statements import External, Common, SpecificBinding
-#from kgconfig import Config
 from collections import OrderedDict
 import logging
 
@@ -84,7 +83,7 @@ def f2003_search_unknowns(stmt, node, config, resolvers=None, gentype=None):
     clsname = node.__class__.__name__
 
     if clsname=='Name':
-        get_name(stmt, node, resolvers, gentype=gentype)
+        get_name(stmt, node, resolvers, config, gentype=gentype)
         return
 
     itemclsname = None
@@ -95,7 +94,7 @@ def f2003_search_unknowns(stmt, node, config, resolvers=None, gentype=None):
                 if item is None: continue
                 itemclsname = item.__class__.__name__
                 if itemclsname=='Name':
-                    get_name(stmt, item, config, resolvers, gentype=gentype)
+                    get_name(stmt, item, resolvers, config, gentype=gentype)
                 else:
                     exec('search_%s(stmt, item, config, gentype=gentype)' % itemclsname)
         elif clsname.startswith('End_'):
@@ -110,7 +109,7 @@ def f2003_search_unknowns(stmt, node, config, resolvers=None, gentype=None):
 
         logger.exception(errmsg)
 
-        if Config.search['promote_exception']:
+        if config["search"]['promote_exception']:
             raise
         else:
             print('')
@@ -165,7 +164,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
 
         # skip if intrinsic
         if node.string.lower() in Intrinsic_Procedures:
-            if  Config.search['skip_intrinsic'] and not is_except(node, stmt):
+            if  config["search"]['skip_intrinsic'] and not is_except(node, stmt):
                 if hasattr(node, 'parent') and not isinstance(node.parent, Fortran2003.Part_Ref) and \
                     not (isinstance(node.parent, Fortran2003.Function_Reference) and node.string.lower()=='null') and \
                     not (isinstance(node.parent, Fortran2003.Specific_Binding) and node.string.lower()=='null'):
@@ -181,7 +180,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
                     #logger.debug('\tin %s'% stmt.reader.id)
                     return
     
-            elif not Config.search['skip_intrinsic'] and is_except(node, stmt): 
+            elif not config["search"]['skip_intrinsic'] and is_except(node, stmt): 
                 if hasattr(node, 'parent') and not isinstance(node.parent, Fortran2003.Part_Ref) and \
                     not (isinstance(node.parent, Fortran2003.Function_Reference) and node.string.lower()=='null') and \
                     not (isinstance(node.parent, Fortran2003.Specific_Binding) and node.string.lower()=='null'):
@@ -199,16 +198,17 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
                     return
 
         # skip if excluded
-        #if Config.exclude.has_key('namepath') and stmt.__class__ in execution_part:
-        if Config.exclude.has_key('namepath'):
-            for pattern, actions in Config.exclude['namepath'].iteritems():
+        #if config.exclude.has_key('namepath') and stmt.__class__ in execution_part:
+        if isinstance(config, list): import pdb; pdb.set_trace()
+        if 'namepath' in config["exclude"]:
+            for pattern, actions in config["exclude"]['namepath'].iteritems():
                 name = node.string.lower()
                 namepath = pack_innamepath(stmt, name) 
                 #logger.debug('%s and %s are being checked for exclusion'%(pattern, namepath))
                 if match_namepath(pattern, namepath):
                     #logger.debug('%s and %s are mathched for exclusion'%(pattern, namepath))
                     if not hasattr(stmt, 'exclude_names'): stmt.exclude_names = OrderedDict()
-                    if stmt.exclude_names.has_key(name):
+                    if name in stmt.exclude_names:
                         stmt.exclude_names[name].extend(actions)
                     else:
                         stmt.exclude_names[name] = actions
@@ -227,7 +227,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
         logger.debug('%s is saved as unknown' % node.string.lower())
 
     elif defer:
-        f2003_search_unknowns(stmt, node, resolvers, config, gentype=gentype)
+        f2003_search_unknowns(stmt, node, config, resolvers, gentype=gentype)
 
 def get_name(stmt, node, resolvers, config, gentype=None):
     get_name_or_defer(stmt, node, resolvers, config, defer=False, gentype=gentype)
@@ -252,11 +252,11 @@ def defer_items(stmt, node, config, gentype=None):
 def search_Type_Declaration_Stmt(stmt, node, config, gentype=None):  
     """ Identifying a name in Type_Declaration_Stmt node"""
 
-    from kgutils import pack_innamepath, match_namepath
+    from fortlab.analyze.kgutils import pack_innamepath, match_namepath
 
     # collect excluded names
-    if Config.exclude.has_key('namepath'):
-        for pattern, actions in Config.exclude['namepath'].iteritems():
+    if 'namepath' in config["exclude"]:
+        for pattern, actions in config["exclude"]['namepath'].iteritems():
             decls = []
             if isinstance(node.items[2], Fortran2003.Entity_Decl):
                 decls.append(node.items[2].items[0].string.lower())
@@ -267,7 +267,7 @@ def search_Type_Declaration_Stmt(stmt, node, config, gentype=None):
                 namepath = pack_innamepath(stmt, decl) 
                 if match_namepath(pattern, namepath):
                     if not hasattr(stmt, 'exclude_names'): stmt.exclude_names = OrderedDict()
-                    if stmt.exclude_names.has_key(decl):
+                    if decl in stmt.exclude_names:
                         stmt.exclude_names[decl].extend(actions)
                     else:
                         stmt.exclude_names[decl] = actions
@@ -601,8 +601,8 @@ def search_Declaration_Type_Spec(stmt, node, config, gentype=None):
 
 def search_Data_Ref(stmt, node, config, gentype=None):
     """ Identifying a name in Data_Ref node"""
-    from kgutils import KGName
-    from Fortran2003 import Name, Part_Ref
+    from fortlab.analyze.kgutils import KGName
+    from fortlab.analyze.Fortran2003 import Name, Part_Ref
 
     # NOTE: to limit the scope of data saving in derived type,
     #       the last part_ref would be the one that has config, gentype=gentype

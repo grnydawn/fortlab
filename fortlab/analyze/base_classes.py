@@ -932,19 +932,19 @@ class Statement(metaclass=classes):
         if isinstance(uname, str): strname = uname
         elif isinstance(uname, KGName): strname = uname.firstpartname()
 
-        for kgname, res in self.unknowns.iteritems():
+        for kgname, res in self.unknowns.items():
             if res is None:
                 return None
             if kgname.firstpartname()==strname:
                 return res.res_stmts
         return None
 
-    def resolve(self, request):
-        from kgparse import ResState
+    def resolve(self, request, config):
+        from fortlab.analyze.kgparse import ResState
         from fortlab.analyze.block_statements import BeginSource
         from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
-        from kgsearch import f2003_search_unknowns
-        from api import walk
+        from fortlab.analyze.kgsearch import f2003_search_unknowns
+        from fortlab.analyze.api import walk
         from fortlab.analyze.block_statements import SubProgramStatement
 
         if request is None: return
@@ -967,11 +967,11 @@ class Statement(metaclass=classes):
                 logger.debug('%s is resolved'%request.uname.firstpartname())
 
                 if not hasattr(typedecl_stmt, 'unknowns'):
-                    f2003_search_unknowns(typedecl_stmt, typedecl_stmt.f2003)
+                    f2003_search_unknowns(typedecl_stmt, typedecl_stmt.f2003, config)
                 if hasattr(typedecl_stmt, 'unknowns'):
-                    for unk, req in typedecl_stmt.unknowns.iteritems():
+                    for unk, req in typedecl_stmt.unknowns.items():
                         if req.state != ResState.RESOLVED:
-                            typedecl_stmt.resolve(req) 
+                            typedecl_stmt.resolve(req, config)
             elif isinstance(self, SubProgramStatement):
                 if not hasattr(self, 'implicit_rule_resolvers'): self.implicit_rule_resolvers = []
                 irres = ImplicitRule_Resolver(request.uname.firstpartname())
@@ -988,14 +988,14 @@ class Statement(metaclass=classes):
         if request.state != ResState.RESOLVED:
             logger.debug('%s is not resolved locally and the request is being defered to parent'%request.uname.firstpartname())
             if hasattr(self, 'parent') and not isinstance(self.parent, BeginSource):
-                self.parent.resolve(request)
+                self.parent.resolve(request, config)
 
 
         # if not resolved,
         if request.state != ResState.RESOLVED:
             if self is request.originator:
                 # check if program units can resolve the request
-                for filepath, units in Config.program_units.iteritems():
+                for filepath, units in Config.program_units.items():
                     for unit in units:
                         if any( isinstance(unit, resolver) for resolver in request.resolvers) and \
                             hasattr(unit, 'name') and request.uname.firstpartname()==unit.name:
@@ -1008,11 +1008,11 @@ class Statement(metaclass=classes):
                                 logger.debug('%s is resolved'%request.uname.firstpartname())
                                 for _stmt, _depth in walk(unit, -1):
                                     if not hasattr(_stmt, 'unknowns'):
-                                        f2003_search_unknowns(_stmt, _stmt.f2003)
+                                        f2003_search_unknowns(_stmt, _stmt.f2003, config)
                                     if hasattr(_stmt, 'unknowns'):
-                                        for unk, req in _stmt.unknowns.iteritems():
+                                        for unk, req in _stmt.unknowns.items():
                                             if req.state != ResState.RESOLVED:
-                                                _stmt.resolve(req) 
+                                                _stmt.resolve(req, config) 
 
                                 # if newly found program unit is not in srcfiles
                                 if not unit in Config.srcfiles[self.top.reader.id][2]:
@@ -1110,16 +1110,16 @@ class BeginStatement(Statement):
         if self.check_private(uname): return False
         else: return True
 
-    def resolve(self, request):
-        from kgparse import ResState
-        from kgsearch import f2003_search_unknowns
-        from kgutils import pack_exnamepath
+    def resolve(self, request, config):
+        from fortlab.analyze.kgparse import ResState
+        from fortlab.analyze.kgsearch import f2003_search_unknowns
+        from fortlab.analyze.kgutils import pack_exnamepath
         from fortlab.analyze.block_statements import HasUseStmt, Type, TypeDecl, Function, Subroutine, Interface, Associate
         from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
         from fortlab.analyze.statements import External, Use, GenericBinding, SpecificBinding, Call
-        from api import walk
+        from fortlab.analyze.api import walk
         from fortlab.analyze.block_statements import SubProgramStatement
-        import Fortran2003
+        from fortlab.analyze import Fortran2003
 
         if request is None: return
 
@@ -1158,11 +1158,11 @@ class BeginStatement(Statement):
                     if subp not in request.originator.ancestors():
                         for _stmt, _depth in walk(subp, -1):
                             if not hasattr(_stmt, 'unknowns'):
-                                f2003_search_unknowns(_stmt, _stmt.f2003)
+                                f2003_search_unknowns(_stmt, _stmt.f2003, config)
                             if hasattr(_stmt, 'unknowns'):
-                                for unk, req in _stmt.unknowns.iteritems():
+                                for unk, req in _stmt.unknowns.items():
                                     if req.state != ResState.RESOLVED:
-                                        _stmt.resolve(req) 
+                                        _stmt.resolve(req, config) 
 
             # check if self is a subprogram and it can resolve
             if request.state != ResState.RESOLVED:
@@ -1181,11 +1181,11 @@ class BeginStatement(Statement):
                     if subp not in request.originator.ancestors():
                         for _stmt, _depth in walk(subp, -1):
                             if not hasattr(_stmt, 'unknowns'):
-                                f2003_search_unknowns(_stmt, _stmt.f2003)
+                                f2003_search_unknowns(_stmt, _stmt.f2003, config)
                             if hasattr(_stmt, 'unknowns'):
-                                for unk, req in _stmt.unknowns.iteritems():
+                                for unk, req in _stmt.unknowns.items():
                                     if req.state != ResState.RESOLVED:
-                                        _stmt.resolve(req) 
+                                        _stmt.resolve(req, config) 
 
 # TODO: With this, KGen fails to resolve for variables defined in different module
 #                if isinstance(self, SubProgramStatement) and any( request.uname.firstpartname() == arg for arg in self.args ):
@@ -1212,11 +1212,11 @@ class BeginStatement(Statement):
                                 logger.debug('%s is resolved'%request.uname.firstpartname())
                                 for _stmt, _depth in walk(item, -1):
                                     if not hasattr(_stmt, 'unknowns'):
-                                        f2003_search_unknowns(_stmt, _stmt.f2003)
+                                        f2003_search_unknowns(_stmt, _stmt.f2003, config)
                                     if hasattr(_stmt, 'unknowns'):
-                                        for unk, req in _stmt.unknowns.iteritems():
+                                        for unk, req in _stmt.unknowns.items():
                                             if req.state != ResState.RESOLVED:
-                                                _stmt.resolve(req) 
+                                                _stmt.resolve(req, config) 
 
             # check if a type can resolve
             if request.state != ResState.RESOLVED and hasattr(self.a, 'type_decls') and \
@@ -1232,11 +1232,11 @@ class BeginStatement(Statement):
 
                     for _stmt, _depth in walk(type_stmt, -1):
                         if not hasattr(_stmt, 'unknowns'):
-                            f2003_search_unknowns(_stmt, _stmt.f2003)
+                            f2003_search_unknowns(_stmt, _stmt.f2003, config)
                         if hasattr(_stmt, 'unknowns'):
-                            for unk, req in _stmt.unknowns.iteritems():
+                            for unk, req in _stmt.unknowns.items():
                                 if req.state != ResState.RESOLVED:
-                                    _stmt.resolve(req) 
+                                    _stmt.resolve(req, config) 
 
             # check if a module variable can resolve
             # NOTE: check if the resolver is in the file or in other file
@@ -1257,11 +1257,11 @@ class BeginStatement(Statement):
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     if not hasattr(typedecl_stmt, 'unknowns'):
-                        f2003_search_unknowns(typedecl_stmt, typedecl_stmt.f2003)
+                        f2003_search_unknowns(typedecl_stmt, typedecl_stmt.f2003, config)
                     if hasattr(typedecl_stmt, 'unknowns'):
-                        for unk, req in typedecl_stmt.unknowns.iteritems():
+                        for unk, req in typedecl_stmt.unknowns.items():
                             if req.state != ResState.RESOLVED:
-                                typedecl_stmt.resolve(req) 
+                                typedecl_stmt.resolve(req, config) 
 
             # check if an interface block in a module can resolve
             if request.state != ResState.RESOLVED and isinstance(request.originator, Call) and \
@@ -1277,11 +1277,11 @@ class BeginStatement(Statement):
                             logger.info('%s is resolved'%request.uname.firstpartname())
                             for _stmt, _depth in walk(item, -1):
                                 if not hasattr(_stmt, 'unknowns'):
-                                    f2003_search_unknowns(_stmt, _stmt.f2003)
+                                    f2003_search_unknowns(_stmt, _stmt.f2003, config)
                                 if hasattr(_stmt, 'unknowns'):
-                                    for unk, req in _stmt.unknowns.iteritems():
+                                    for unk, req in _stmt.unknowns.items():
                                         if req.state != ResState.RESOLVED:
-                                            _stmt.resolve(req) 
+                                            _stmt.resolve(req, config) 
 
             # check if an interface block in a subprogram can resolve
             if request.state != ResState.RESOLVED and isinstance(request.originator, Call) and \
@@ -1297,11 +1297,11 @@ class BeginStatement(Statement):
                             logger.info('%s is resolved'%request.uname.firstpartname())
                             for _stmt, _depth in walk(item, -1):
                                 if not hasattr(_stmt, 'unknowns'):
-                                    f2003_search_unknowns(_stmt, _stmt.f2003)
+                                    f2003_search_unknowns(_stmt, _stmt.f2003, config)
                                 if hasattr(_stmt, 'unknowns'):
-                                    for unk, req in _stmt.unknowns.iteritems():
+                                    for unk, req in _stmt.unknowns.items():
                                         if req.state != ResState.RESOLVED:
-                                            _stmt.resolve(req) 
+                                            _stmt.resolve(req, config) 
 
             # check if a common statement can resolve
             #if request.state != ResState.RESOLVED and hasattr(self.a, 'common_stmts') and \
@@ -1318,11 +1318,11 @@ class BeginStatement(Statement):
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     if not hasattr(common_stmt, 'unknowns'):
-                        f2003_search_unknowns(common_stmt, common_stmt.f2003)
+                        f2003_search_unknowns(common_stmt, common_stmt.f2003, config)
                     if hasattr(common_stmt, 'unknowns'):
-                        for unk, req in common_stmt.unknowns.iteritems():
+                        for unk, req in common_stmt.unknowns.items():
                             if req.state != ResState.RESOLVED:
-                                common_stmt.resolve(req) 
+                                common_stmt.resolve(req, config) 
 
             # handle external
             if request.state != ResState.RESOLVED and isinstance(request.originator, External) and \
@@ -1342,12 +1342,12 @@ class BeginStatement(Statement):
                     uname = request.uname.firstpartname()
 
                     # first, try with use stmts having only keyword
-                    for mod_name, use_stmts in self.use_stmts.iteritems():
+                    for mod_name, use_stmts in self.use_stmts.items():
                         for use_stmt in use_stmts:
                             if use_stmt.isonly:
                                 if uname in use_stmt.norenames and self.check_access(request):
                                     logger.debug('%s is found in norenames'%uname)
-                                    use_stmt.resolve(request)
+                                    use_stmt.resolve(request, config)
                                     if request.state == ResState.RESOLVED:
                                         logger.debug('%s is resolved in norenames'%uname)
                                         request.res_stmts.append(use_stmt)
@@ -1361,7 +1361,7 @@ class BeginStatement(Statement):
                                 elif len(rename)==1 and self.check_access(request):
                                     newname = KGName(pack_exnamepath(request.originator, rename[0][1]), node=use_stmt.f2003, stmt=use_stmt)
                                     request.push_uname(newname)
-                                    use_stmt.resolve(request)
+                                    use_stmt.resolve(request, config)
                                     if request.state == ResState.RESOLVED:
                                         request.pop_uname(reset_uname=True)
                                         request.res_stmts.append(use_stmt)
@@ -1375,11 +1375,11 @@ class BeginStatement(Statement):
                     # and then, try with use stmts not having only keyword
                     # but still has renames or norenames
                     if request.state != ResState.RESOLVED:
-                        for mod_name, use_stmts in self.use_stmts.iteritems():
+                        for mod_name, use_stmts in self.use_stmts.items():
                             for use_stmt in use_stmts:
                                 if not use_stmt.isonly:
                                     if uname in use_stmt.norenames and self.check_access(request):
-                                        use_stmt.resolve(request)
+                                        use_stmt.resolve(request, config)
                                         if request.state == ResState.RESOLVED:
                                             request.res_stmts.append(use_stmt)
                                             use_stmt.add_geninfo(request.uname, request)
@@ -1392,7 +1392,7 @@ class BeginStatement(Statement):
                                     elif len(rename)==1 and self.check_access(request):
                                         newname = KGName(pack_exnamepath(request.originator, rename[0][1]), node=use_stmt.f2003, stmt=use_stmt)
                                         request.push_uname(newname)
-                                        use_stmt.resolve(request)
+                                        use_stmt.resolve(request, config)
 
                                         if request.state == ResState.RESOLVED:
                                             request.pop_uname(reset_uname=True)
@@ -1406,7 +1406,7 @@ class BeginStatement(Statement):
 
 #                    # and then, try with use stmts that has an analyzed-module
 #                    if request.state != ResState.RESOLVED:
-#                        for mod_name, use_stmts in self.use_stmts.iteritems():
+#                        for mod_name, use_stmts in self.use_stmts.items():
 #                            for use_stmt in use_stmts:
 #                                if use_stmt.module:
 #                                    if uname in use_stmt.module.a.module_provides:
@@ -1434,11 +1434,11 @@ class BeginStatement(Statement):
                     # and then, try with use stmts not having only keyword
                     # and not has renames or norenames
                     if request.state != ResState.RESOLVED:
-                        for mod_name, use_stmts in self.use_stmts.iteritems():
+                        for mod_name, use_stmts in self.use_stmts.items():
                             for use_stmt in use_stmts:
                                 if not use_stmt.isonly:
                                     if len(use_stmt.norenames)==0 and len(use_stmt.renames)==0 and self.check_access(request):
-                                        use_stmt.resolve(request)
+                                        use_stmt.resolve(request, config)
                                         if request.state == ResState.RESOLVED:
                                             request.res_stmts.append(use_stmt)
                                             use_stmt.add_geninfo(request.uname, request)
@@ -1464,11 +1464,11 @@ class BeginStatement(Statement):
                     else:
                         for _stmt, _depth in walk(type_stmt, -1):
                             if not hasattr(_stmt, 'unknowns'):
-                                f2003_search_unknowns(_stmt, _stmt.f2003)
+                                f2003_search_unknowns(_stmt, _stmt.f2003, config)
                             if hasattr(_stmt, 'unknowns'):
-                                for unk, req in _stmt.unknowns.iteritems():
+                                for unk, req in _stmt.unknowns.items():
                                     if req.state != ResState.RESOLVED:
-                                        _stmt.resolve(req) 
+                                        _stmt.resolve(req, config)
             elif request.state != ResState.RESOLVED and isinstance(request.originator, GenericBinding):
                 for child in self.content:
                     if isinstance(child, SpecificBinding):
@@ -1483,11 +1483,11 @@ class BeginStatement(Statement):
                             #if self not in request.originator.ancestors():
                             for _stmt, _depth in walk(child, -1):
                                 if not hasattr(_stmt, 'unknowns'):
-                                    f2003_search_unknowns(_stmt, _stmt.f2003)
+                                    f2003_search_unknowns(_stmt, _stmt.f2003, config)
                                 if hasattr(_stmt, 'unknowns'):
-                                    for unk, req in _stmt.unknowns.iteritems():
+                                    for unk, req in _stmt.unknowns.items():
                                         if req.state != ResState.RESOLVED:
-                                            _stmt.resolve(req) 
+                                            _stmt.resolve(req, config)
 
         elif isinstance(self, Associate):
             def get_name(node, bag, depth):
@@ -1509,12 +1509,12 @@ class BeginStatement(Statement):
 
                     #if self not in request.originator.ancestors():
                     if not hasattr(assoc_stmt, 'unknowns'):
-                        f2003_search_unknowns(assoc_stmt, assocnames[request.uname.firstpartname()])
+                        f2003_search_unknowns(assoc_stmt, assocnames[request.uname.firstpartname()], config)
 
                     if hasattr(assoc_stmt, 'unknowns'):
                         if not hasattr(assoc_stmt, 'assoc_map'):
                             assoc_stmt.assoc_map = {}
-                        for unk, req in assoc_stmt.unknowns.iteritems():
+                        for unk, req in assoc_stmt.unknowns.items():
 
                             if unk in assoc_stmt.assoc_map:
                                 if request.uname not in assoc_stmt.assoc_map[unk]:
@@ -1523,11 +1523,11 @@ class BeginStatement(Statement):
                                 assoc_stmt.assoc_map[unk] = [ request.uname ]
 
                             if req.state != ResState.RESOLVED:
-                                assoc_stmt.resolve(req) 
+                                assoc_stmt.resolve(req, config)
 
         # defer to super
         if request.state != ResState.RESOLVED:
-            super(BeginStatement, self).resolve(request)
+            super(BeginStatement, self).resolve(request, config)
 
     def tokgen(self):
         construct_name = self.construct_name

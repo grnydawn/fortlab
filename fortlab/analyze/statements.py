@@ -41,8 +41,7 @@ from fortlab.analyze.utils import split_comma, specs_split_comma, AnalyzeError, 
 
 # start of KGEN addition
 import fortlab.analyze.Fortran2003 as Fortran2003
-#from kgutils import traverse, pack_innamepath, ProgramException, UserException
-#from kgconfig import Config
+from fortlab.analyze.kgutils import traverse, pack_innamepath, ProgramException, UserException
 import logging
 logger = logging.getLogger('kgen')
 
@@ -196,12 +195,12 @@ class StmtFuncStatement(Statement):
         from fortlab.analyze.block_statements import declaration_construct
 
         def get_names(node, bag, depth):
-            from Fortran2003 import Name
+            from fortlab.analyze.Fortran2003 import Name
             if isinstance(node, Name) and node.string not in bag:
                 bag.append(node.string)
 
         def get_partrefs(node, bag, depth):
-            from Fortran2003 import Part_Ref
+            from fortlab.analyze.Fortran2003 import Part_Ref
             if isinstance(node, Part_Ref):
                 bag.append(True)
 
@@ -1228,7 +1227,7 @@ class Save(Statement):
         return 'SAVE %s' % (', '.join(items))
 
     def resolve_uname(self, uname, request):
-        from kgutils import KGName
+        from fortlab.analyze.kgutils import KGName
         if hasattr(self, 'items'):
             if self.items:
                 for item in self.items:
@@ -1386,8 +1385,8 @@ class Use(Statement):
             self.supporting_names = public_names
 
         def resolve(self, request):
-            from kgparse import ResState
-            from api import parse
+            from fortlab.analyze.kgparse import ResState
+            from fortlab.analyze.api import parse
 
             if request.state != ResState.RESOLVED and request.uname.firstpartname() in self.supporting_names:
                 #tree = parse('!kgen dummy comment for intrinsic module', \
@@ -1420,57 +1419,70 @@ class Use(Statement):
             self.used = []
 
     def intrinsic_module(self, modname):
-        from kgextra import Intrinsic_Modules
+        from fortlab.analyze.kgextra import Intrinsic_Modules
 
-        if Intrinsic_Modules.has_key(modname.upper()):
+        if modname.upper() in Intrinsic_Modules:
             return self.KgenIntrinsicModule(Intrinsic_Modules[modname.upper()])
 
-    def resolve(self, request):
-        from kgparse import ResState, SrcFile
-        from kgutils import match_namepath
-        from kgextra import Intrinsic_Modules
-        from kgconfig import Config
+    def get_exclude_actions(self, section_name, config, *args ):
+        if section_name=='namepath':
+            if len(args)<1: return []
+
+            if section_name in config["exclude"]:
+                options = config["exclude"][section_name]
+                for pattern, actions in options.items():
+                    if match_namepath(pattern, args[0]):
+                        return actions
+            return []
+        else:
+            UserException('Not supported section name in exclusion input file: %s'%section)
+
+    def resolve(self, request, config):
+        from fortlab.analyze.kgparse import ResState, SrcFile
+        from fortlab.analyze.kgutils import match_namepath
+        from fortlab.analyze.kgextra import Intrinsic_Modules
 
         src = None
         if self.module is None:
-            if Config.modules.has_key(self.name):
-                self.module = Config.modules[self.name]['stmt']
+            if self.name in config["modules"]:
+                self.module = config["modules"][self.name]['stmt']
             else:
                 if (self.nature and self.nature=='INTRINSIC') or \
-                    Intrinsic_Modules.has_key(self.name.upper()):
+                    self.name.upper() in Intrinsic_Modules:
                     self.module = self.intrinsic_module(self.name)
                 else:
                     # skip if excluded
-                    if 'skip_module' in Config.get_exclude_actions('namepath', self.name):
+                    if 'skip_module' in self.get_exclude_actions('namepath', config, self.name):
                         return
 
-                    fn = self.reader.find_module_source_file(self.name)
+                    fn = self.reader.find_module_source_file(self.name, config)
                     if fn:
-                        src = SrcFile(fn)
+                        src = SrcFile(fn, config)
                         logger.debug('\tin the search of "%s" directly from %s and originally from %s' % \
                             (request.uname.firstpartname(), os.path.basename(self.reader.id), \
                             os.path.basename(request.originator.reader.id)))
                         self.module = src.tree.a.module[self.name]
                     else:
-                        raise UserException('Module, %s, is not found at %s. Please check include paths for searching module files.' % \
-                            (self.name, self.reader.id))
+                        raise UserException("Module, %s, is not found at %s. "
+                            "Please check include paths for searching module "
+                            "files." % (self.name, self.reader.id))
 
         if self.module:
-            self.module.resolve(request)
+            self.module.resolve(request, config)
 
         if request.state == ResState.RESOLVED:
             # if intrinsic module
 
             if (self.nature and self.nature=='INTRINSIC') or \
-                Intrinsic_Modules.has_key(self.name.upper()):
+                self.name.upper() in Intrinsic_Modules:
                 pass
             # if newly found moudle is not in srcfiles
-            elif not self.module in Config.srcfiles[self.top.reader.id][1]:
-                Config.srcfiles[self.top.reader.id][1].append(self.module)
+            elif not self.module in config["srcfiles"][self.top.reader.id][1]:
+                config["srcfiles"][self.top.reader.id][1].append(self.module)
 
     def tokgen(self):
         def get_rename(node, bag, depth):
-            from Fortran2003 import Rename
+            from fortlab.analyze.Fortran2003 import Rename
             if isinstance(node, Rename) and node.items[1].string==bag['newname']:
                 bag['onlyitem'] = '%s => %s'%(node.items[1].string, node.items[2].string)
                 return True
@@ -1511,8 +1523,8 @@ class Use(Statement):
         if self.name not in modules:
             fn = self.reader.find_module_source_file(self.name)
             if fn is not None:
-                from readfortran import FortranFileReader
-                from parsefortran import FortranParser
+                from fortlab.analyze.readfortran import FortranFileReader
+                from fortlab.analyze.parsefortran import FortranParser
                 self.info('looking module information from %r' % (fn))
                 reader = FortranFileReader(fn, include_dirs=self.reader.include_dirs, source_only=self.reader.source_only)
                 parser = FortranParser(reader)
@@ -1625,8 +1637,8 @@ class Parameter(Statement):
 
     # start of KGEN addition
     def resolve_uname(self, uname, request):
-        from kgsearch import f2003_search_unknowns
-        from kgparse import ResState
+        from fortlab.analyze.kgsearch import f2003_search_unknowns
+        from fortlab.analyze.kgparse import ResState
 
         if uname.firstpartname() in self.leftnames:
             self.add_geninfo(uname, request)
@@ -1690,7 +1702,7 @@ class Equivalence(Statement):
     # start of KGEN addition
     def resolve_uname(self, uname, request):
         def get_equivname(node, bag, depth):
-            from Fortran2003 import Equivalence_Object_List, Equivalence_Set, Name
+            from fortlab.analyze.Fortran2003 import Equivalence_Object_List, Equivalence_Set, Name
             if isinstance(node, Name) and node.string==uname.firstpartname():
                 if isinstance(node.parent, Equivalence_Set):
                     bag['equiv_names'].append(node.parent.items[1])
