@@ -1,5 +1,5 @@
 NAME := fortlab
-PY := /usr/bin/python3
+PY := python3
 
 .PHONY: clean clean-test clean-pyc clean-build doc help
 .DEFAULT_GOAL := help
@@ -95,8 +95,8 @@ install: clean ## install the package to the active Python's site-packages
 	${PY} setup.py install
 
 dev-install: clean ## install the package locally
-	pip install -e ../microapp --user
-	pip install -e . --user
+	pip install -e ../microapp
+	pip install -e .
 	#${PY} setup.py develop
 	#${PY} setup.py develop --user
 

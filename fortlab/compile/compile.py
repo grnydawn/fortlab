@@ -4,7 +4,7 @@ import sys
 import os
 import subprocess
 
-from microapp import App, run_command
+from microapp import App
 from fortlab.compile import kgcompiler
 
 
@@ -30,7 +30,7 @@ class MicroappCompile(App):
 
         self.register_forward("data", help="json object")
 
-    def perform(self, mgr, args):
+    def perform(self, args):
 
         buildcmd = args.buildcmd["_"]
 
@@ -136,7 +136,7 @@ class MicroappCompile(App):
         if args.savejson:
             jsonfile = args.savejson["_"]
             cmd = ["dict2json", "@flags", "-o", jsonfile]
-            run_command(self, cmd, fwds={"flags": flags})
+            self.manager.run_command(cmd, forward={"flags": flags})
 
         os.chdir(orgcwd)
 

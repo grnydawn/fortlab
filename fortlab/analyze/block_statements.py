@@ -28,7 +28,7 @@ from fortlab.analyze.base_classes import BeginStatement, EndStatement, Statement
 from fortlab.analyze.readfortran import Line
 from fortlab.analyze.utils import split_comma, filter_stmts, parse_bind, parse_result, AnalyzeError, is_name
 
-import fortlab.analyze.Fortran2003 as Fortran2003 # KGEN addition
+from fortlab.analyze import Fortran2003 # KGEN addition
 import logging # KGEN addition
 logger = logging.getLogger('kgen') # KGEN addition
 
@@ -1565,8 +1565,8 @@ class Enum(BeginStatement):
 
 ###################################################
 
-import fortlab.analyze.statements as statements
-import fortlab.analyze.typedecl_statements as typedecl_statements
+from fortlab.analyze import statements
+from fortlab.analyze import typedecl_statements
 __all__.extend(statements.__all__)
 __all__.extend(typedecl_statements.__all__)
 

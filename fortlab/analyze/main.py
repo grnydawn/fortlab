@@ -178,7 +178,7 @@ class FortranAnalyzer(App):
 
 
 
-    def perform(self, mgr, args):
+    def perform(self, args):
 
         from fortlab.analyze.kgsearch import f2003_search_unknowns
         import fortlab.analyze.kganalyze as kganalyze

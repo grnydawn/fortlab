@@ -12,7 +12,7 @@ class Fortlab(Project):
     _author_email_ = "youngsung.kim.act2@gmail.com"
     _url_ = "https://github.com/grnydawn/fortlab"
     _builtin_apps_ = [MicroappCompile, FortranAnalyzer]
-    _requires_ = ["dict2json"]
+    _requires_ = ["dict2json>=0.1.2"]
 
     def __init__(self):
         self.add_argument("--test", help="test argument")

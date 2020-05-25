@@ -8,8 +8,8 @@ from fortlab.analyze.block_statements import Module, Program
 import os
 import io
 import logging
-import fortlab.analyze.kgutils as kgutils
-import fortlab.analyze.api as api
+from fortlab.analyze import kgutils
+from fortlab.analyze import api
 from collections import OrderedDict
 
 logger = logging.getLogger('kgen')

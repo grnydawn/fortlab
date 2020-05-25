@@ -10,7 +10,7 @@ def test_basic():
     prj = Fortlab()
 
     cmd = "input @1 --forward '@x=2'"
-    ret = prj.main(cmd)
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
@@ -19,7 +19,7 @@ def test_print(capsys):
     prj = Fortlab()
 
     cmd = "-- input @1 --forward '@x=2' -- print @x @data[0]"
-    ret = prj.main(cmd)
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
@@ -57,7 +57,7 @@ def test_analyze(capsys):
 
     cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
     cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
-    ret = prj.main(cmd)
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 

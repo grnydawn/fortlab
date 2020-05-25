@@ -1,8 +1,11 @@
 """main entry for fortlab command-line interface"""
 
+
 def main():
     from fortlab import Fortlab
-    return Fortlab().main()
+    ret, _ = Fortlab().run_command()
+    return ret
+
 
 if __name__ == "__main__":
     main()
