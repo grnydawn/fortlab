@@ -5,7 +5,7 @@ from fortlab.analyze import FortranAnalyzer
 
 class Fortlab(Project):
     _name_ = "fortlab"
-    _version_ = "0.1.2"
+    _version_ = "0.1.3"
     _description_ = "Fortran Analysis Utilities"
     _long_description_ = "Tools for Analysis of Fortran Application and Source code"
     _author_ = "Youngsung Kim"
