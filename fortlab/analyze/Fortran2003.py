@@ -7,7 +7,8 @@
 import re
 import logging
 from fortlab.analyze.splitline import string_replace_map
-import fortlab.analyze.pattern_tools as pattern
+from fortlab.analyze import pattern_tools as pattern
+#import fortlab.analyze.pattern_tools as pattern
 from fortlab.analyze.readfortran import FortranReaderBase
 
 logger = logging.getLogger("kgen")

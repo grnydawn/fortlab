@@ -24,7 +24,7 @@ from fortlab.analyze.base_classes import Statement, BeginStatement, EndStatement
 #from utils import split_comma, AnalyzeError, name_re, is_entity_decl, is_name, CHAR_BIT, parse_array_spec
 from fortlab.analyze.utils import entity_split_comma, split_comma, AnalyzeError, name_re, is_entity_decl, is_name, CHAR_BIT, parse_array_spec
 
-import fortlab.analyze.Fortran2003 as Fortran2003 # KGEN addition
+from fortlab.analyze import Fortran2003 # KGEN addition
 from fortlab.analyze.kgutils import traverse # KGEN additon
 
 # Intrinsic type specification statements

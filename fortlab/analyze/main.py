@@ -25,7 +25,9 @@ class FortranAnalyzer(App):
         self.add_argument("--compile-info", metavar="path", help="compiler flags")
 
 
-        self.register_forward("data", help="ast object")
+        #self.register_shared("config", help="config object")
+        #self.register_shared("trees", help="ast object")
+        self.register_forward("analysis", help="analysis object")
 
         # database
         self.config = {}
@@ -242,7 +244,8 @@ class FortranAnalyzer(App):
             if modstmt != self.config["topblock"]['stmt']:
                 kganalyze.update_state_info(moddict['stmt'], self.config)
 
-        import pdb; pdb.set_trace()
+        self.add_forward(analysis=self.config)
+
 #
 #    def add_geninfo_ancestors(self, stmt):
 #        from block_statements import EndStatement

@@ -47,7 +47,28 @@ def test_print(capsys):
 #    os.remove(jsonfile)
 
 
-def test_analyze(capsys):
+#def test_analyze(capsys):
+#
+#    prj = Fortlab()
+#
+#    workdir = os.path.join(here, "src")
+#    callsitefile = os.path.join(workdir, "update_mod.F90")
+#    jsonfile = os.path.join(workdir, "test.json")
+#
+#    cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
+#    cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
+#    ret = prj.main(cmd)
+#
+#    assert ret == 0
+#
+#    captured = capsys.readouterr()
+#    assert captured.err == ""
+#    assert "Compiled" in captured.out
+#    assert os.path.isfile(jsonfile)
+#    os.remove(jsonfile)
+
+
+def test_timing(capsys):
 
     prj = Fortlab()
 
@@ -57,6 +78,7 @@ def test_analyze(capsys):
 
     cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
     cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
+    cmd += " -- timing '@analysis'"
     ret = prj.main(cmd)
 
     assert ret == 0

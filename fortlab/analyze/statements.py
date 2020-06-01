@@ -40,7 +40,8 @@ from fortlab.analyze.utils import split_comma, specs_split_comma, AnalyzeError, 
 #from utils import classes
 
 # start of KGEN addition
-import fortlab.analyze.Fortran2003 as Fortran2003
+#import fortlab.analyze.Fortran2003 as Fortran2003
+from fortlab.analyze import Fortran2003
 from fortlab.analyze.kgutils import traverse, pack_innamepath, ProgramException, UserException
 import logging
 logger = logging.getLogger('kgen')
