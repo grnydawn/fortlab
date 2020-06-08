@@ -4,7 +4,7 @@ import sys
 import os
 import subprocess
 
-from microapp import App, run_command
+from microapp import App
 from fortlab.compile import kgcompiler
 
 
@@ -27,10 +27,11 @@ class MicroappCompile(App):
         self.add_argument("--outdir", type=str, help="output directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
+        self.add_argument("--check", action="store_true", help="check strace return code")
 
         self.register_forward("data", help="json object")
 
-    def perform(self, mgr, args):
+    def perform(self, args):
 
         buildcmd = args.buildcmd["_"]
 
@@ -114,6 +115,9 @@ class MicroappCompile(App):
             # get return code
             retcode = process.poll()
                                          
+            if args.check and retcode != 0:
+                raise Exception("strace returned non-zero value: %d" % retcode)
+
         #except Exception as err:
         #    raise
         finally:
@@ -136,7 +140,7 @@ class MicroappCompile(App):
         if args.savejson:
             jsonfile = args.savejson["_"]
             cmd = ["dict2json", "@flags", "-o", jsonfile]
-            run_command(self, cmd, fwds={"flags": flags})
+            self.manager.run_command(cmd, forward={"flags": flags})
 
         os.chdir(orgcwd)
 

@@ -43,6 +43,7 @@ from fortlab.analyze.utils import split_comma, specs_split_comma, AnalyzeError, 
 #import fortlab.analyze.Fortran2003 as Fortran2003
 from fortlab.analyze import Fortran2003
 from fortlab.analyze.kgutils import traverse, pack_innamepath, ProgramException, UserException
+
 import logging
 logger = logging.getLogger('kgen')
 

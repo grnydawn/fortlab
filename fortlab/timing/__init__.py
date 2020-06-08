@@ -1,2 +1,2 @@
 
-from .main import FortranTiming
+from .main import FortranTimingCodegen

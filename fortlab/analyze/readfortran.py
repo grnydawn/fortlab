@@ -377,6 +377,7 @@ class FortranReaderBase(object):
 
         self.exit_on_error = True
         self.restore_cache = []
+
         return
 
     def __repr__(self):
@@ -1237,9 +1238,9 @@ class FortranReaderBase(object):
         if line_content:
             return self.line_item(line_content,startlineno,endlineno,label,name)
         if label is not None:
-            self.warning('Label must follow nonblank character (F2008:3.2.5_2)')
+            logger.warning('Label must follow nonblank character (F2008:3.2.5_2)')
         if name is not None:
-            self.error('No construct following construct-name.')
+            logger.error('No construct following construct-name.')
         if have_comment:
             return self.next()
         return self.comment_item('', startlineno, endlineno)

@@ -10,7 +10,7 @@ def test_basic():
     prj = Fortlab()
 
     cmd = "input @1 --forward '@x=2'"
-    ret = prj.main(cmd)
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
@@ -19,7 +19,7 @@ def test_print(capsys):
     prj = Fortlab()
 
     cmd = "-- input @1 --forward '@x=2' -- print @x @data[0]"
-    ret = prj.main(cmd)
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
@@ -35,8 +35,8 @@ def test_print(capsys):
 #    workdir = os.path.join(here, "src")
 #    jsonfile = os.path.join(workdir, "test.json")
 #
-#    cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s' --assert-forward \"@len(data.keys()) == 3\" " % (jsonfile, workdir)
-#    ret = prj.main(cmd)
+#    cmd = "compile make --cleancmd 'make clean' --check --savejson '%s' --verbose --workdir '%s' --assert-forward \"@len(data.keys()) == 3\" " % (jsonfile, workdir)
+#    ret, fwds = prj.run_command(cmd)
 #
 #    assert ret == 0
 #
@@ -45,8 +45,8 @@ def test_print(capsys):
 #    assert "Compiled" in captured.out
 #    assert os.path.isfile(jsonfile)
 #    os.remove(jsonfile)
-
-
+#
+#
 #def test_analyze(capsys):
 #
 #    prj = Fortlab()
@@ -57,7 +57,7 @@ def test_print(capsys):
 #
 #    cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
 #    cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
-#    ret = prj.main(cmd)
+#    ret, fwds = prj.run_command(cmd)
 #
 #    assert ret == 0
 #
@@ -78,8 +78,8 @@ def test_timing(capsys):
 
     cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
     cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
-    cmd += " -- timing '@analysis'"
-    ret = prj.main(cmd)
+    cmd += " -- timingcodegen '@analysis'"
+    ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
