@@ -8,10 +8,6 @@ from importlib import import_module
 from fortlab.analyze import api, base_classes, statements, block_statements, typedecl_statements, Fortran2003, kgparse
 from fortlab.kgutils import ProgramException, traverse, match_namepath, pack_innamepath, pack_exnamepath, logger
 from fortlab.kgplugin import Kgen_Plugin
-#from kgconfig import Config
-
-#logger = logging.getLogger('kgen') # KGEN addition
-here = os.path.dirname(os.path.realpath(__file__))
 
 ########### Common ############
 
@@ -31,6 +27,7 @@ KERNEL_ID_0 = 0
 event_register = OrderedDict()
 named_parts = OrderedDict()
 plugin_common = OrderedDict()
+plugin_config = OrderedDict()
 
 
 PART_PREFIX = '_kgen_part_'
@@ -207,10 +204,10 @@ def gensobj(parent, node, kernel_id, attrs=None):
 def is_plugin_common_block(kernel_id, node, plugins):
     if not isinstance(plugins, list) or node is None: return False
 
-    for pkid, pattrs in plugin_common.iteritems():
+    for pkid, pattrs in plugin_common.items():
         if pkid!=kernel_id: continue
-        for pname, attrs in pattrs.iteritems():
-            for bname, bid in attrs['blocks'].iteritems():
+        for pname, attrs in pattrs.items():
+            for bname, bid in attrs['blocks'].items():
                 pnode, partname, part = named_parts[kernel_id][bid]
                 if part==node:
                     return True
@@ -254,25 +251,25 @@ def event_point(cur_kernel_id, cur_file_type, cur_gen_stage, node, plugins=None)
     if not node.kgen_isvalid: return
 
     #import pdb; pdb.set_trace()
-    for plugin_name, plugin_modules in event_register.iteritems():
+    for plugin_name, plugin_modules in event_register.items():
         if not plugins or plugin_name not in plugins: continue
-        for plugin_name, plugin_objects in plugin_modules.iteritems():
-            for plugin_class, kernel_ids in plugin_objects.iteritems():
-                for kernel_id, file_types in kernel_ids.iteritems():
+        for plugin_name, plugin_objects in plugin_modules.items():
+            for plugin_class, kernel_ids in plugin_objects.items():
+                for kernel_id, file_types in kernel_ids.items():
                     if  kernel_id==KERNEL_SELECTION.ALL: pass
                     else:
                         if kernel_id==KERNEL_SELECTION.FIRST and kernel_id!=0: continue
                         if kernel_id==KERNEL_SELECTION.LAST and kernel_id!=len(State.kernels)-1: continue
                         if isinstance(kernel_id, int) and kernel_id!=cur_kernel_id: continue
                 
-                    for file_type, gen_stages in file_types.iteritems():
+                    for file_type, gen_stages in file_types.items():
                         if file_type!=cur_file_type and file_type != FILE_TYPE.BOTH: continue
 
-                        for gen_stage, targets in gen_stages.iteritems():
+                        for gen_stage, targets in gen_stages.items():
                             if gen_stage==GENERATION_STAGE.ALL_STAGES: pass
                             elif gen_stage!=cur_gen_stage: continue
 
-                            for target, funclist in targets.iteritems():
+                            for target, funclist in targets.items():
                                 if inspect.isclass(target):
                                     if node.kgen_stmt:
                                         if isinstance(node.kgen_stmt, target):
@@ -305,54 +302,54 @@ plugin_default_infolist = [ 'kernel_name', 'kgen_version', 'kernel_path', 'kerne
 
 def getinfo(name, plugin=None):
     if name in plugin_default_infolist: 
-        if name=='kernel_name': return Config.kernel['name']
-        elif name=='kgen_version': return '%d.%d.%s'%tuple(Config.kgen['version'])
-        elif name=='kernel_path': return os.path.realpath('%s/%s'%(Config.path['outdir'], Config.path['kernel']))
-        elif name=='kernel_driver_name': return Config.kernel_driver['name']
-        elif name=='kernel_driver_callsite_args': return Config.kernel_driver['callsite_args']
-        elif name=='is_openmp_app': return Config.openmp['enabled']
-        elif name=='is_openmp_critical': return Config.openmp['critical']
-        elif name=='openmp_maxthreads': return Config.openmp['maxnum_threads']
-        elif name=='is_mpi_app': return Config.mpi['enabled']
-        elif name=='mpi_comm': return Config.mpi['comm']
-        elif name=='mpi_logical': return Config.mpi['logical']
-        elif name=='mpi_status_size': return Config.mpi['status_size']
-        elif name=='mpi_use': return Config.mpi['use_stmts']
-        elif name=='invocations': return Config.invocation['triples']
-        elif name=='data': return Config.data
-        elif name=='print_var_names': return Config.debug['printvar']
-        elif name=='callsite_file_path': return Config.callsite['filepath']
-        elif name=='callsite_stmts': return Config.callsite['stmts']
-        elif name=='parentblock_stmt': return Config.parentblock['stmt']
-        elif name=='topblock_stmt': return Config.topblock['stmt']
-        elif name=='verbose_level': return Config.verify['verboselevel']
+        if name=='kernel_name': return plugin_config["current"]["kernel"]['name']
+        elif name=='kgen_version': return '%d.%d.%s'%tuple(plugin_config["current"]["kgen"]['version'])
+        elif name=='kernel_path': return os.path.realpath('%s/%s'%(plugin_config["current"]["path"]['outdir'], plugin_config["current"]["path"]['kernel']))
+        elif name=='kernel_driver_name': return plugin_config["current"]["kernel_driver"]['name']
+        elif name=='kernel_driver_callsite_args': return plugin_config["current"]["kernel_driver"]['callsite_args']
+        elif name=='is_openmp_app': return plugin_config["current"]["openmp"]['enabled']
+        elif name=='is_openmp_critical': return plugin_config["current"]["openmp"]['critical']
+        elif name=='openmp_maxthreads': return plugin_config["current"]["openmp"]['maxnum_threads']
+        elif name=='is_mpi_app': return plugin_config["current"]["mpi"]['enabled']
+        elif name=='mpi_comm': return plugin_config["current"]["mpi"]['comm']
+        elif name=='mpi_logical': return plugin_config["current"]["mpi"]['logical']
+        elif name=='mpi_status_size': return plugin_config["current"]["mpi"]['status_size']
+        elif name=='mpi_use': return plugin_config["current"]["mpi"]['use_stmts']
+        elif name=='invocations': return plugin_config["current"]["invocation"]['triples']
+        elif name=='data': return plugin_config["current"]["data"]
+        elif name=='print_var_names': return plugin_config["current"]["debug"]['printvar']
+        elif name=='callsite_file_path': return plugin_config["current"]["callsite"]['filepath']
+        elif name=='callsite_stmts': return plugin_config["current"]["callsite"]['stmts']
+        elif name=='parentblock_stmt': return plugin_config["current"]["parentblock"]['stmt']
+        elif name=='topblock_stmt': return plugin_config["current"]["topblock"]['stmt']
+        elif name=='verbose_level': return plugin_config["current"]["verify"]['verboselevel']
         #elif name=='repeat_count': return Config.timing['repeat']
         elif name=='dummy_stmt': return statements.DummyStatement()
-        elif name=='add_mpi_frame': return Config.add_mpi_frame['enabled']
-        elif name=='mpi_frame_np': return Config.add_mpi_frame['np']
-        elif name=='mpi_frame_mpirun': return Config.add_mpi_frame['mpirun']
-        elif name=='cache_pollution': return Config.add_cache_pollution['size']
-        elif name=='verify_tol': return Config.verify['tolerance']
-        elif name=='verify_minval': return Config.verify['minval']
+        elif name=='add_mpi_frame': return plugin_config["current"]["add_mpi_frame"]['enabled']
+        elif name=='mpi_frame_np': return plugin_config["current"]["add_mpi_frame"]['np']
+        elif name=='mpi_frame_mpirun': return plugin_config["current"]["add_mpi_frame"]['mpirun']
+        elif name=='cache_pollution': return plugin_config["current"]["add_cache_pollution"]['size']
+        elif name=='verify_tol': return plugin_config["current"]["verify"]['tolerance']
+        elif name=='verify_minval': return plugin_config["current"]["verify"]['minval']
         elif name=='walk_stmts': return api.walk
-        elif name=='model_file': return Config.modelfile
-        elif name=='coverage_typeid': return Config.model['types']['code']['id']
-        elif name=='coverage_typename': return Config.model['types']['code']['name']
-        elif name=='coverage_filter': return Config.model['types']['code']['filter']
-        elif name=='etime_typeid': return Config.model['types']['etime']['id']
-        elif name=='etime_typename': return Config.model['types']['etime']['name']
-        elif name=='papi_typeid': return Config.model['types']['papi']['id']
-        elif name=='papi_typename': return Config.model['types']['papi']['name']
-        elif name=='etime_timer': return Config.model['types']['etime']['timer']
-        elif name=='model_path': return os.path.realpath('%s/%s'%(Config.path['outdir'], Config.path['model']))
-        elif name=='is_papi_enabled': return Config.model['types']['papi']['enabled']
-        elif name=='papi_header_file': return None if Config.model['types']['papi']['header'] is None else os.path.basename(Config.model['types']['papi']['header'])
-        elif name=='papi_header_path': return None if Config.model['types']['papi']['header'] is None else Config.model['types']['papi']['header']
-        elif name=='papi_event': return Config.model['types']['papi']['event']
+        elif name=='model_file': return plugin_config["current"]["modelfile"]
+        elif name=='coverage_typeid': return plugin_config["current"]["model"]['types']['code']['id']
+        elif name=='coverage_typename': return plugin_config["current"]["model"]['types']['code']['name']
+        elif name=='coverage_filter': return plugin_config["current"]["model"]['types']['code']['filter']
+        elif name=='etime_typeid': return plugin_config["current"]["model"]['types']['etime']['id']
+        elif name=='etime_typename': return plugin_config["current"]["model"]['types']['etime']['name']
+        elif name=='papi_typeid': return plugin_config["current"]["model"]['types']['papi']['id']
+        elif name=='papi_typename': return plugin_config["current"]["model"]['types']['papi']['name']
+        elif name=='etime_timer': return plugin_config["current"]["model"]['types']['etime']['timer']
+        elif name=='model_path': return plugin_config["current"]["path"]['model_path']
+        elif name=='is_papi_enabled': return plugin_config["current"]["model"]['types']['papi']['enabled']
+        elif name=='papi_header_file': return None if plugin_config["current"]["model"]['types']['papi']['header'] is None else os.path.basename(plugin_config["current"]["model"]['types']['papi']['header'])
+        elif name=='papi_header_path': return None if plugin_config["current"]["model"]['types']['papi']['header'] is None else plugin_config["current"]["model"]['types']['papi']['header']
+        elif name=='papi_event': return plugin_config["current"]["model"]['types']['papi']['event']
         elif name=='traverse': return traverse
         elif name=='logger': return logger 
-    elif name in Config.plugindb:
-        return Config.plugindb[name]
+    elif name in plugin_config["current"]["plugindb"]:
+        return plugin_config["current"]["plugindb"][name]
     else:
         raise ProgramException('No information for %s'%name)
 
@@ -360,7 +357,7 @@ def setinfo(name, info):
     if name in plugin_default_infolist:
         raise ProgramException('Given name is already defined as a KGen internal information name: %s'%name)
     else:
-        Config.plugindb[name] = info
+        plugin_config["current"]["plugindb"][name] = info
 
 def set_plugin_env(mod):
 
@@ -382,7 +379,7 @@ def set_plugin_env(mod):
     mod.get_partname = get_partname
     mod.get_rawname = get_rawname
     mod.check_node = check_node
-    mod.get_exclude_actions = Config.get_exclude_actions
+    #mod.get_exclude_actions = plugin_config["current"]["get_exclude_actions"]
 
     mod.get_namedpart = get_namedpart
     mod.namedpart_gennode = namedpart_gennode
@@ -432,14 +429,22 @@ def set_plugin_env(mod):
 #    mod.TYPE_BP_PART = TYPE_BP_PART
     mod.INTF_SPEC_PART = INTF_SPEC_PART
 
-def init_plugins(kernel_ids):
-    global plugin_common
+def init_plugins(kernel_ids, plugins, config):
+    global plugin_common, plugin_config
+
+    plugin_config["current"] = config
+
+    here = os.path.dirname(os.path.realpath(__file__))
 
     plugin_common = Kgen_Plugin.plugin_common
+    plugin_common.clear()
 
     for kernel_id in kernel_ids:
+
         Kgen_Plugin.plugin_common[kernel_id] = OrderedDict()
-        for plugin_name, plugin_path in Config.plugin['priority'].iteritems():
+
+        #for plugin_name, plugin_path in Config.plugin['priority'].items():
+        for plugin_name, plugin_path in plugins.items():
             plugin_common[kernel_id][plugin_name] = OrderedDict()
             plugin_common[kernel_id][plugin_name]['blocks'] =  OrderedDict()
             plugin_files = [x[:-3] for x in os.listdir(plugin_path) if x.endswith(".py")]
@@ -447,6 +452,7 @@ def init_plugins(kernel_ids):
                 try:
                     relpath = os.path.relpath(plugin_path, here).split("/")
                     relpath.append(plugin)
+                    relpath.insert(0, "fortlab")
                     mod = import_module('.'.join(relpath))
                     set_plugin_env(mod)
                     match = lambda x: inspect.isclass(x) and x is not Kgen_Plugin and issubclass(x, Kgen_Plugin)
@@ -737,7 +743,7 @@ class Gen_Statement(object):
         self.kgen_use_tokgen = False
 
         if attrs:
-            for key, value in attrs.iteritems():
+            for key, value in attrs.items():
                 setattr(self, key, value)
 
     def statement_created(self, plugins):
@@ -771,7 +777,7 @@ class Gen_Statement(object):
 
         lines = []
 
-        maxline = Config.fort['maxlinelen'] - 2
+        maxline = plugin_config["current"]["fort"]['maxlinelen'] - 2
         splitline = line.split(' ')
         stripline = line.strip()
         ompline = stripline.upper().replace(' ', '')
@@ -930,7 +936,7 @@ class GenK_Statement(Gen_Statement):
 
         def process_exclude(node, bag, depth):
             if isinstance(node, Fortran2003.Name):
-                for namepath, actions in bag['excludes'].iteritems():
+                for namepath, actions in bag['excludes'].items():
                     if match_namepath(namepath, pack_innamepath(bag['stmt'], node.string)):
                         bag['matched'] = True
                         return True
@@ -942,8 +948,8 @@ class GenK_Statement(Gen_Statement):
 
             if not hasattr(stmt, 'geninfo') and not hasattr(stmt, 'unknowns'):
                 self.kgen_isvalid = False
-            elif hasattr(stmt, 'f2003') and "namepath" in Config.exclude:
-                bag = {'excludes': Config.exclude['namepath'], 'matched': False, 'stmt':stmt}
+            elif hasattr(stmt, 'f2003') and "namepath" in plugin_config["current"]["exclude"]:
+                bag = {'excludes': plugin_config["current"]["exclude"]['namepath'], 'matched': False, 'stmt':stmt}
                 traverse(stmt.f2003, process_exclude, bag)
                 if bag['matched']:
                     self.kgen_isvalid = False
@@ -1277,7 +1283,7 @@ def set_indent(indent):
 #
 #    # construct a generation tree
 #    genfiles = []
-#    for filepath, (srcobj, mods_used, units_used) in State.srcfiles.iteritems():
+#    for filepath, (srcobj, mods_used, units_used) in State.srcfiles.items():
 #        if hasattr(srcobj.tree, 'geninfo') and KGGenType.has_state(srcobj.tree.geninfo):
 #
 #            kfile = genkobj(None, srcobj.tree, KERNEL_ID_0)

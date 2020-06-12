@@ -153,6 +153,22 @@ class FortranAnalyzer(App):
         self.config['state_switch']['directory'] = ''
         self.config['state_switch']['clean'] = ''
 
+        # exclude parameters
+        self.config['exclude'] = OrderedDict()
+
+        # make rebuild parameters
+        self.config['path'] = OrderedDict()
+
+        
+        # openmp parameters
+        self.config['openmp'] = OrderedDict()
+        self.config['openmp']['enabled'] = False
+        self.config['openmp']['critical'] = True
+        self.config['openmp']['maxnum_threads'] = 102
+
+        # Fortran parameters
+        self.config['fort'] = OrderedDict()
+        self.config['fort']['maxlinelen'] = 132
 
     def read_compile_info(self, cinfo, config):
 

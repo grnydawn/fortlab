@@ -6,7 +6,7 @@ from configparser import ConfigParser
 from microapp import App
 
 from fortlab.kgutils import logger, remove_multiblanklines
-from fortlab.kggenfile import gensobj, KERNEL_ID_0, event_register, Gen_Statement, set_indent
+from fortlab.kggenfile import gensobj, KERNEL_ID_0, event_register, Gen_Statement, set_indent, init_plugins
 
 
 class FortranTimingCodegen(App):
@@ -80,6 +80,13 @@ class FortranTimingCodegen(App):
                         self.genfiles.append((sfile, filepath))
                         self.config["used_srcfiles"][filepath] = (sfile, mods_used, units_used)
 
+
+                here = os.path.dirname(os.path.realpath(__file__))
+                etime_plugindir = os.path.join(here, "plugins", "gencore")
+
+                self.config["path"]["model_path"] = model_realpath 
+
+                init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, self.config)
 
                 # process each nodes in the tree
                 for plugin_name in event_register.keys():

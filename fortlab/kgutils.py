@@ -273,6 +273,20 @@ def dequote(s):
         return s[1:-1]
     return s
 
+#
+#def get_exclude_actions(section_name, config, *args ):
+#    if section_name=='namepath':
+#        if len(args)<1: return []
+#
+#        if section_name in config["exclude"]:
+#            options = config["exclude"][section_name]
+#            for pattern, actions in options.iteritems():
+#                if match_namepath(pattern, args[0]):
+#                    return actions
+#        return []
+#    else:
+#        raise UserException('Not supported section name in exclusion input file: %s'%section)
+#
 ##############################################
 # Logging
 ##############################################
