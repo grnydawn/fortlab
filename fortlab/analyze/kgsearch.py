@@ -6,7 +6,7 @@ Module content
 
 # kgen_search.py
 
-from fortlab.analyze.kgutils import show_tree
+from fortlab.kgutils import show_tree, logger
 from fortlab.analyze.kgparse import KGGenType
 import fortlab.analyze.Fortran2003 as Fortran2003
 #from typedecl_statements import TypeDeclarationStatement, TypeStmt, Procedure # TEEMP
@@ -14,7 +14,9 @@ from fortlab.analyze.typedecl_statements import TypeDeclarationStatement, TypeSt
 from fortlab.analyze.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
 from fortlab.analyze.statements import External, Common, SpecificBinding
 from collections import OrderedDict
-import logging
+
+#import logging
+#logger = logging.getLogger('kgen')
 
 res_default = [ TypeDeclarationStatement ]
 #res_external = [ External, Procedure ] # TEMP
@@ -37,8 +39,6 @@ res_anything = res_typespec + res_subprogram + [ SpecificBinding, Common, Type, 
 ###############################################################################
 ################################### COMMON ####################################
 ###############################################################################
-
-logger = logging.getLogger('kgen')
 
 class SearchException(Exception):
     pass
@@ -150,7 +150,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
     defer_names
     """
 
-    from fortlab.analyze.kgutils import KGName, pack_innamepath, match_namepath
+    from fortlab.kgutils import KGName, pack_innamepath, match_namepath
     from fortlab.analyze.kgparse import ResState
     from fortlab.analyze.kgextra import Intrinsic_Procedures
     from fortlab.analyze.base_classes import is_except
@@ -252,7 +252,7 @@ def defer_items(stmt, node, config, gentype=None):
 def search_Type_Declaration_Stmt(stmt, node, config, gentype=None):  
     """ Identifying a name in Type_Declaration_Stmt node"""
 
-    from fortlab.analyze.kgutils import pack_innamepath, match_namepath
+    from fortlab.kgutils import pack_innamepath, match_namepath
 
     # collect excluded names
     if 'namepath' in config["exclude"]:
@@ -601,7 +601,7 @@ def search_Declaration_Type_Spec(stmt, node, config, gentype=None):
 
 def search_Data_Ref(stmt, node, config, gentype=None):
     """ Identifying a name in Data_Ref node"""
-    from fortlab.analyze.kgutils import KGName
+    from fortlab.kgutils import KGName
     from fortlab.analyze.Fortran2003 import Name, Part_Ref
 
     # NOTE: to limit the scope of data saving in derived type,

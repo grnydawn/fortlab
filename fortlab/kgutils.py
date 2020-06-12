@@ -279,7 +279,8 @@ def dequote(s):
 
 # create logger with 'spam_application'
 logger = logging.getLogger('kgen')
-logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 
 # create file handler which logs even debug messages
 fh = logging.FileHandler('kgen.log', mode='w')

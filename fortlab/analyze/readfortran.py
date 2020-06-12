@@ -78,15 +78,16 @@ import os
 import sys
 import tempfile
 import traceback
-import logging
 from io import StringIO
 #from numpy.distutils.misc_util import yellow_text, red_text, blue_text # KGEN deletion
 
 from fortlab.analyze.sourceinfo import get_source_info, get_source_info_str
 from fortlab.analyze.splitline import String, string_replace_map, splitquote
 from fortlab.analyze.utils import is_name
+from fortlab.kgutils import logger
 
-logger = logging.getLogger('kgen')
+#import logging
+#logger = logging.getLogger('kgen')
 
 _spacedigits=' 0123456789'
 _cf2py_re = re.compile(r'(?P<indent>\s*)!f2py(?P<rest>.*)',re.I)

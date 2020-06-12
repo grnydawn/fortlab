@@ -30,8 +30,10 @@ from fortlab.analyze.utils import split_comma, filter_stmts, parse_bind, parse_r
 
 #import fortlab.analyze.Fortran2003 as Fortran2003 # KGEN addition
 from fortlab.analyze import Fortran2003 # KGEN addition
-import logging # KGEN addition
-logger = logging.getLogger('kgen') # KGEN addition
+#import logging # KGEN addition
+#logger = logging.getLogger('kgen') # KGEN addition
+from fortlab.kgutils import logger
+
 
 class HasImplicitStmt(object):
 

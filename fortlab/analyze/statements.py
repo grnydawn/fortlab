@@ -42,10 +42,10 @@ from fortlab.analyze.utils import split_comma, specs_split_comma, AnalyzeError, 
 # start of KGEN addition
 #import fortlab.analyze.Fortran2003 as Fortran2003
 from fortlab.analyze import Fortran2003
-from fortlab.analyze.kgutils import traverse, pack_innamepath, ProgramException, UserException
+from fortlab.kgutils import traverse, pack_innamepath, ProgramException, UserException, logger
 
-import logging
-logger = logging.getLogger('kgen')
+#import logging
+#logger = logging.getLogger('kgen')
 
 class DummyStatement(object):
     pass
@@ -1229,7 +1229,7 @@ class Save(Statement):
         return 'SAVE %s' % (', '.join(items))
 
     def resolve_uname(self, uname, request):
-        from fortlab.analyze.kgutils import KGName
+        from fortlab.kgutils import KGName
         if hasattr(self, 'items'):
             if self.items:
                 for item in self.items:
@@ -1441,7 +1441,7 @@ class Use(Statement):
 
     def resolve(self, request, config):
         from fortlab.analyze.kgparse import ResState, SrcFile
-        from fortlab.analyze.kgutils import match_namepath
+        from fortlab.kgutils import match_namepath
         from fortlab.analyze.kgextra import Intrinsic_Modules
 
         src = None

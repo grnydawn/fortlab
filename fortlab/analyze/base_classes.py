@@ -15,7 +15,6 @@ __all__ = ['Statement','BeginStatement','EndStatement', 'Variable',
 import re
 import sys
 import copy
-import logging
 from collections import OrderedDict
 from fortlab.analyze.readfortran import Line, Comment
 #from numpy.distutils.misc_util import yellow_text, red_text # KGEN deletion
@@ -25,9 +24,10 @@ from fortlab.analyze.utils import classes
 #logger = logging.getlogger('fparser') # KGEN deletion
 
 # start of KGEN addition
-logger = logging.getLogger('kgen')
+#import logging
+#logger = logging.getLogger('kgen')
 
-from fortlab.analyze.kgutils import KGName, ProgramException, traverse
+from fortlab.kgutils import KGName, ProgramException, traverse, logger
 from fortlab.analyze.kgextra import Intrinsic_Procedures
 #from kgconfig import Config
 
@@ -1113,7 +1113,7 @@ class BeginStatement(Statement):
     def resolve(self, request, config):
         from fortlab.analyze.kgparse import ResState
         from fortlab.analyze.kgsearch import f2003_search_unknowns
-        from fortlab.analyze.kgutils import pack_exnamepath
+        from fortlab.kgutils import pack_exnamepath
         from fortlab.analyze.block_statements import HasUseStmt, Type, TypeDecl, Function, Subroutine, Interface, Associate
         from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
         from fortlab.analyze.statements import External, Use, GenericBinding, SpecificBinding, Call

@@ -1,18 +1,16 @@
 '''KGen parser
 '''
+import os, io, locale
 #import os.path
-from fortlab.analyze.kgutils import UserException
+from fortlab.kgutils import UserException, pack_exnamepath, match_namepath, traverse, run_shcmd, logger
 #from kgconfig import Config
 from fortlab.analyze.statements import Comment
 from fortlab.analyze.block_statements import Module, Program
-import os
-import io
-import logging
-from fortlab.analyze import kgutils
 from fortlab.analyze import api
 from collections import OrderedDict
 
-logger = logging.getLogger('kgen')
+#import logging
+#logger = logging.getLogger('kgen')
 
 #############################################################################
 ## RESOLUTION TYPE
@@ -218,7 +216,8 @@ class SrcFile(object):
 
         new_lines = []
 
-        with io.open(self.realpath, 'r', encoding="utf8") as f:
+        enc = locale.getpreferredencoding(False)
+        with io.open(self.realpath, 'r', encoding=enc) as f:
             if preprocess:
                 pp = config["bin"]['pp']
                 if pp.endswith('fpp'):
@@ -231,7 +230,7 @@ class SrcFile(object):
                                 'Preprocessor is not either fpp or cpp')
 
                 cmd = '%s %s %s %s' % (pp, flags, ' '.join(includes), macros)
-                output, err, retcode = kgutils.run_shcmd(str.encode(cmd), input=str.encode(f.read()))
+                output, err, retcode = run_shcmd(str.encode(cmd), input=str.encode(f.read()))
                 output = output.decode("utf-8")
                 prep = map(lambda l: '!KGEN'+l if l.startswith('#') else l,
                            output.split('\n'))
@@ -389,9 +388,9 @@ class SrcFile(object):
             else: # not in callsite
                 if config["callsite"]['namepath'] and stmt.__class__ in executable_construct:
                     names = []
-                    kgutils.traverse(stmt.f2003, get_names, names)
+                    traverse(stmt.f2003, get_names, names)
                     for name in names:
-                        if kgutils.match_namepath(config["callsite"]['namepath'], kgutils.pack_exnamepath(stmt, name), internal=False):
+                        if match_namepath(config["callsite"]['namepath'], pack_exnamepath(stmt, name), internal=False):
                             config["kernel"]['name'] = name
                             for _s, _d in api.walk(stmt):
                                 config["callsite"]['stmts'].append(_s)

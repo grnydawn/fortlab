@@ -1,7 +1,7 @@
 # kgen_analyze.py
 
 
-from fortlab.analyze.kgutils import KGName, ProgramException, UserException, traverse
+from fortlab.kgutils import KGName, ProgramException, UserException, traverse
 from fortlab.analyze.kgparse import KGGenType, SrcFile, ResState
 from fortlab.analyze.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, Actual_Arg_Spec_List, \
     Section_Subscript_List, Actual_Arg_Spec, Structure_Constructor_2, Proc_Component_Ref

@@ -10,14 +10,15 @@ __all__ = ['FortranParser']
 import re
 import sys
 import traceback
-import logging
 #from numpy.distutils.misc_util import yellow_text, red_text # KGEN deletion
 
 from fortlab.analyze.readfortran import FortranFileReader, FortranStringReader
 from fortlab.analyze.block_statements import BeginSource
 from fortlab.analyze.utils import AnalyzeError
+from fortlab.kgutils import logger
 
-logger = logging.getLogger('kgen')
+#import logging
+#logger = logging.getLogger('kgen')
 
 class FortranParser(object):
     """Parser of FortranReader structure.
