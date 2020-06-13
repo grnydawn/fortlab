@@ -6,7 +6,7 @@ def main():
     from fortlab.main import Fortlab as flab
 
     console_scripts = ["fortlab=fortlab.__main__:main"]
-    install_requires = ["microapp>=0.2.3"] + flab._requires_
+    install_requires = ["microapp>=0.3.2"] + flab._requires_
 
     setup(
         name=flab._name_,

@@ -230,7 +230,7 @@ class SrcFile(object):
                                 'Preprocessor is not either fpp or cpp')
 
                 cmd = '%s %s %s %s' % (pp, flags, ' '.join(includes), macros)
-                output, err, retcode = run_shcmd(str.encode(cmd), input=str.encode(f.read()))
+                output, err, retcode = run_shcmd(cmd, input=f.read())
                 output = output.decode("utf-8")
                 prep = map(lambda l: '!KGEN'+l if l.startswith('#') else l,
                            output.split('\n'))

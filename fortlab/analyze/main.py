@@ -270,7 +270,7 @@ class FortranAnalyzer(App):
                 self.read_compile_info(cinfo, self.config)
 
             else:
-                print("Wrong compile-info type: %s" % type(cinfo), file=sys.stderr)
+                print("Wrong compile-info type: %s" % type(cinfo))
                 sys.exit(-1)
 
         # preprocess if required

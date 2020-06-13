@@ -1391,7 +1391,8 @@ def simple_main():
         print('Processing',filename)
         reader = FortranFileReader(filename)
         for item in reader:
-            print (item, file=sys.stdout)
+            #print (item, file=sys.stdout)
+            print (item)
             sys.stdout.flush()
             pass
 

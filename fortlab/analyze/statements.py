@@ -384,7 +384,7 @@ class Call(Statement):
         if hasattr(a, 'external'):
             external = a.external
             if self.designator in external:
-                print("Need to analyze: %s" % str(self), file=sys.stderr)
+                print("Need to analyze: %s" % str(self))
         return
 
 class Goto(Statement):

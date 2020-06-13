@@ -157,8 +157,8 @@ def get_base_classes(cls):
         bases += get_base_classes(c)
     return bases + cls.__bases__ + (cls,)
 
-#class Variable(object):
-class Variable(metaclass=classes):
+class Variable(object):
+#class Variable(metaclass=classes):
     """
     Variable instance has attributes:
       name
@@ -509,14 +509,14 @@ class Variable(metaclass=classes):
     def info(self, message):
         return self.parent.info(message)
 
-#class ProgramBlock(object):
-class ProgramBlock(metaclass=classes):
+class ProgramBlock(object):
+#class ProgramBlock(metaclass=classes):
 
     pass
     #__metaclass__ = classes
 
-#class Statement(object):
-class Statement(metaclass=classes):
+class Statement(object):
+#class Statement(metaclass=classes):
     """
     Statement instance has attributes:
       parent  - Parent BeginStatement or FortranParser instance

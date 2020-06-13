@@ -8,6 +8,8 @@ Module content
 
 __autodoc__ = ['get_reader', 'parse', 'walk']
 
+import locale
+
 #import Fortran2003
 # import all Statement classes:
 #from fortlab.analyze.base_classes import classes
@@ -71,6 +73,9 @@ def get_reader(input, isfree=None, isstrict=None, include_dirs = None, source_on
         reader = FortranFileReader(input, include_dirs = include_dirs, source_only = source_only)
     elif isinstance(input, str):
         reader = FortranStringReader(input, include_dirs = include_dirs, source_only = source_only)
+    elif type(input) == type(u""): # python 2
+        enc = locale.getpreferredencoding(False)
+        reader = FortranStringReader(input.encode(enc), include_dirs = include_dirs, source_only = source_only)
     else:
         raise TypeError('Expected string or filename input but got %s' % (type(input)))
     if isfree is None: isfree = reader.isfree

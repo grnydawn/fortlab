@@ -4,6 +4,7 @@
 import sys
 import logging
 import subprocess
+import locale
 
 ##############################################
 # KGName
@@ -175,11 +176,17 @@ def run_shcmd(cmd, input=None, **kwargs):
         show_error_msg = kwargs['show_error_msg']
         del kwargs['show_error_msg']
 
+    enc = locale.getpreferredencoding(False)
+    if type(cmd) == type(u""):
+        cmd = cmd.encode(enc)
+
+    if input and type(input) == type(u""):
+        input = input.encode(enc)
+
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, \
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, **kwargs)
 
     out, err = proc.communicate(input=input)
-
 
     if proc.returncode != 0 and show_error_msg:
         print('>> %s' % cmd)

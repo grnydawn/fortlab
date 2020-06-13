@@ -889,7 +889,7 @@ class Gen_Statement(object):
 
                     return self.pack_fortran_line(cur_indent, self.tokgen(), unres_str)
                 else:
-                    if isinstance(lines_str, str):
+                    if isinstance(lines_str, str) or type(lines_str) == type(u""):
                         cur_indent = get_indent(lines_str)
                         if isinstance(self.kgen_stmt, base_classes.BeginStatement) and \
                              not self.kgen_stmt.__class__ in [ block_statements.If ]:

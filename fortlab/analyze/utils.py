@@ -300,34 +300,39 @@ class meta_classes(type):
         return cls
 
 class classes(type):
-#class classes(metaclass=meta_classes):
-    """Make classes available as attributes of this class.
+    pass
 
-    To add a class to the attributes list, one must use::
-
-      __metaclass__ = classes
-
-    in the definition of the class.
-
-    In addition, apply the following tasks:
-
-    * decorate analyze methods with show_item_on_failure
-    """
-
-    #__metaclass__ = meta_classes
-
-    __abstractmethods__ = False
-    def __getattr__(self, name):
-        # Expose created classes only as attributes to ``classes`` type.
-        cls = _classes_cache.get(name)
-        if cls is None:
-            raise AttributeError('instance does not have attribute %r' % (name))
-        return cls
-
-    def __new__(metacls, name, bases, dict):
-        if 'analyze' in dict:
-            dict['analyze'] =  show_item_on_failure(dict['analyze'])
-        cls = type.__new__(metacls, name, bases, dict)
-        _classes_cache[name] = cls
-        return cls
+#class classes(type):
+##class classes(metaclass=meta_classes):
+#    """Make classes available as attributes of this class.
+#
+#    To add a class to the attributes list, one must use::
+#
+#      __metaclass__ = classes
+#
+#    in the definition of the class.
+#
+#    In addition, apply the following tasks:
+#
+#    * decorate analyze methods with show_item_on_failure
+#    """
+#
+#    #__metaclass__ = meta_classes
+#
+#    __abstractmethods__ = False
+#    def __getattr__(self, name):
+#        if name != "a": import pdb; pdb.set_trace()
+#        # Expose created classes only as attributes to ``classes`` type.
+#        cls = _classes_cache.get(name)
+#        if cls is None:
+#            raise AttributeError('instance does not have attribute %r' % (name))
+#        return cls
+#
+#    def __new__(metacls, name, bases, dict):
+#        if 'analyze' in dict:
+#            dict['analyze'] =  show_item_on_failure(dict['analyze'])
+#        cls = type.__new__(metacls, name, bases, dict)
+#        _classes_cache[name] = cls
+#        return cls
+#
 

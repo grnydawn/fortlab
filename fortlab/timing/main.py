@@ -1,5 +1,5 @@
 
-import os, time, glob, shutil, locale
+import os, time, glob, shutil, locale, io
 
 from collections import OrderedDict
 from configparser import ConfigParser
@@ -126,9 +126,9 @@ class FortranTimingCodegen(App):
                             slines = remove_multiblanklines(slines)
                             etime_files.append(filename)
                             enc = locale.getpreferredencoding(False)
-                            with open(os.path.join(etime_realpath, filename), 'w', encoding=enc) as fd:
+                            with io.open(os.path.join(etime_realpath, filename), 'w', encoding=enc) as fd:
                                 fd.write(slines)
-                            with open(os.path.join(etime_realpath, filename+".kgen"), 'w', encoding=enc) as ft:
+                            with io.open(os.path.join(etime_realpath, filename+".kgen"), 'w', encoding=enc) as ft:
                                 ft.write('\n'.join(sfile.kgen_stmt.prep))
 
                 self.gen_makefile(etime_realpath)
@@ -147,7 +147,7 @@ class FortranTimingCodegen(App):
         required_modelsections = []
         model_sections = {}
 
-        with open(modelfile, 'r') as mf:
+        with io.open(modelfile, 'r') as mf:
 
             for line in mf.readlines():
                 if line.startswith('['):
@@ -198,7 +198,7 @@ class FortranTimingCodegen(App):
         for opt, val in options:
             cfg.set(subsec, opt, val)
 
-        with open(modelfile, mode) as mf:
+        with io.open(modelfile, mode) as mf:
             cfg.write(mf)
 
 
@@ -213,7 +213,7 @@ class FortranTimingCodegen(App):
         if not os.path.exists(modelfile):
             mode = 'w+'
 
-        with open(modelfile, mode) as mf:
+        with io.open(modelfile, mode) as mf:
             mf.seek(0, os.SEEK_END)
             size = mf.tell()
             if size == 0:
@@ -234,7 +234,7 @@ class FortranTimingCodegen(App):
 #            if not cfg.has_section(secname):
 #                cfg.add_section(secname)
 
-        with open(modelfile, mode) as mf:
+        with io.open(modelfile, mode) as mf:
             cfg.write(mf)
                             
 
@@ -246,7 +246,7 @@ class FortranTimingCodegen(App):
             org_files.append(self.config["topblock"]['filepath'])
 
         enc = locale.getpreferredencoding(False)
-        with open('%s/Makefile'%etime_realpath, 'w', encoding=enc) as f:
+        with io.open('%s/Makefile'%etime_realpath, 'w', encoding=enc) as f:
 
             self.write(f, '# Makefile for KGEN-generated instrumentation')
             self.write(f, '')
@@ -322,5 +322,12 @@ class FortranTimingCodegen(App):
         tab = ''
         if n: nl = '\n'
         if t: tab = '\t'
-        f.write(tab + line + nl)
+        text = tab + line + nl
+
+        if type(text) == type(u""):
+            f.write(text)
+
+        else:
+            enc = locale.getpreferredencoding(False)
+            f.write(text.decode(enc))
 
