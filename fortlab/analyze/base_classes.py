@@ -28,8 +28,7 @@ from fortlab.analyze.utils import classes
 #logger = logging.getLogger('kgen')
 
 from fortlab.kgutils import KGName, ProgramException, traverse, logger
-from fortlab.analyze.kgextra import Intrinsic_Procedures
-#from kgconfig import Config
+from fortlab.analyze.kgintrinsics import Intrinsic_Procedures
 
 class KGen_Resolver(object):
     def __init__(self, name):
@@ -59,14 +58,15 @@ class ImplicitRule_Resolver(KGen_Resolver):
 class IntrinsicProcedure_Resolver(KGen_Resolver):
     pass
 
-def is_except(name, stmt):
+def is_except(name, stmt, excepts):
     if not name or not stmt: return False
 
     namelist = [a.name for a in stmt.ancestors()]
     namelist.append(name)
-    exceptlist = Config.search['except']
+    #exceptlist = Config.search['except']
 
-    for elist in exceptlist:
+    #for elist in exceptlist:
+    for elist in excepts:
         elist_split = elist.split(':')
         same = True
         for i in range(min(len(namelist), len(elist_split))):
@@ -387,7 +387,7 @@ class Variable(object):
             lattr = attr.lower()
             uattr = attr.upper()
             if lattr.startswith('dimension'):
-                assert self.dimension is None, str(self.dimension,attr)
+                assert self.dimension is None, str(self.dimension) + ", " + str(attr)
                 l = attr[9:].lstrip()
                 assert l[0]+l[-1]=='()',str(l)
                 self.set_dimension(split_comma(l[1:-1].strip(), self.parent.item))
@@ -995,7 +995,7 @@ class Statement(object):
         if request.state != ResState.RESOLVED:
             if self is request.originator:
                 # check if program units can resolve the request
-                for filepath, units in Config.program_units.items():
+                for filepath, units in config["program_units"].items():
                     for unit in units:
                         if any( isinstance(unit, resolver) for resolver in request.resolvers) and \
                             hasattr(unit, 'name') and request.uname.firstpartname()==unit.name:
@@ -1015,16 +1015,17 @@ class Statement(object):
                                                 _stmt.resolve(req, config) 
 
                                 # if newly found program unit is not in srcfiles
-                                if not unit in Config.srcfiles[self.top.reader.id][2]:
-                                    Config.srcfiles[self.top.reader.id][2].append(unit)
+                                if not unit in config["srcfiles"][self.top.reader.id][2]:
+                                    config["srcfiles"][self.top.reader.id][2].append(unit)
                     if request.state==ResState.RESOLVED:
                         break
 
                 # check if intrinsic procedure can resolve
                 if request.state != ResState.RESOLVED:
                     if request.uname.firstpartname() in Intrinsic_Procedures:
-                        if  Config.search['skip_intrinsic'] and not is_except(request.uname.firstpartname(), self) or \
-                            not Config.search['skip_intrinsic'] and is_except(request.uname.firstpartname(), self):
+                        excepts = config["search"]['except']
+                        if  config["search"]['skip_intrinsic'] and not is_except(request.uname.firstpartname(), self, excepts) or \
+                            not config["search"]['skip_intrinsic'] and is_except(request.uname.firstpartname(), self, excepts):
                             ipres = IntrinsicProcedure_Resolver(request.uname.firstpartname())
                             ipres.add_geninfo(request.uname, request)
                             request.res_stmts.append(ipres)

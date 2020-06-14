@@ -170,6 +170,10 @@ class FortranAnalyzer(App):
         self.config['fort'] = OrderedDict()
         self.config['fort']['maxlinelen'] = 132
 
+        # program units
+        self.config['program_units'] = OrderedDict()
+
+
     def read_compile_info(self, cinfo, config):
 
         for key, value in cinfo.items():

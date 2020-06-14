@@ -1,5 +1,5 @@
 
-import os
+import os, shutil
 
 from fortlab import Fortlab
 
@@ -76,16 +76,26 @@ def test_timing(capsys):
     outdir = os.path.join(here, "output")
     callsitefile = os.path.join(workdir, "update_mod.F90")
     jsonfile = os.path.join(workdir, "test.json")
+    cleancmd = "cd %s; make clean" % workdir 
+    buildcmd = "cd %s; make build" % workdir
+    runcmd = "cd %s; make run" % workdir
 
-    cmd = "compile make --cleancmd 'make clean' --savejson '%s' --verbose --workdir '%s'" % (jsonfile, workdir)
+    cmd = "compile '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
+            buildcmd, cleancmd, jsonfile, workdir)
     cmd += " -- analyze --compile-info '@data' '%s'" % callsitefile
-    cmd += " -- timingcodegen '@analysis' --outdir '%s'" % outdir
+    cmd += " -- timingcodegen '@analysis' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s'" % (
+                outdir, cleancmd, buildcmd, runcmd)
     ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
 
-    captured = capsys.readouterr()
-    assert captured.err == ""
-    assert "Compiled" in captured.out
-    assert os.path.isfile(jsonfile)
-    os.remove(jsonfile)
+    cmd = "shell 'cd %s; make; make recover; cd %s; make clean' --useenv" % (fwds["etimedir"], workdir)
+
+    ret, fwds = prj.run_command(cmd)
+
+    assert ret == 0
+
+    datafiles = os.listdir(os.path.join(outdir, "model", "__data__", "1"))
+    assert len(datafiles) > 0
+
+    shutil.rmtree(outdir)

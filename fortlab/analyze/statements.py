@@ -1421,7 +1421,7 @@ class Use(Statement):
             self.used = []
 
     def intrinsic_module(self, modname):
-        from fortlab.analyze.kgextra import Intrinsic_Modules
+        from fortlab.analyze.kgintrinsics import Intrinsic_Modules
 
         if modname.upper() in Intrinsic_Modules:
             return self.KgenIntrinsicModule(Intrinsic_Modules[modname.upper()])
@@ -1442,7 +1442,7 @@ class Use(Statement):
     def resolve(self, request, config):
         from fortlab.analyze.kgparse import ResState, SrcFile
         from fortlab.kgutils import match_namepath
-        from fortlab.analyze.kgextra import Intrinsic_Modules
+        from fortlab.analyze.kgintrinsics import Intrinsic_Modules
 
         src = None
         if self.module is None:

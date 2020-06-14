@@ -3,7 +3,6 @@
 import os, io, locale
 #import os.path
 from fortlab.kgutils import UserException, pack_exnamepath, match_namepath, traverse, run_shcmd, logger
-#from kgconfig import Config
 from fortlab.analyze.statements import Comment
 from fortlab.analyze.block_statements import Module, Program
 from fortlab.analyze import api
@@ -134,14 +133,14 @@ class SrcFile(object):
             #if not match:
             #    match = re.match(r'\s*#include\s*("[^"]+"|\<[^\']+\>)\s*\Z', line, re.I)
             if match:
-                if self.realpath in Config.include['file']:
-                    include_dirs = (Config.include['file'][self.realpath]['path'] +
-                                    Config.include['path'])
+                if self.realpath in self.config["include"]['file']:
+                    include_dirs = (self.config["include"]['file'][self.realpath]['path'] +
+                                    self.config["include"]['path'])
                 else:
-                    include_dirs = Config.include['path']
+                    include_dirs = self.config["include"]['path']
 
-                if os.path.isfile(Config.mpi['header']):
-                    include_dirs.insert(0, os.path.dirname(Config.mpi['header']))
+                if os.path.isfile(self.config["mpi"]['header']):
+                    include_dirs.insert(0, os.path.dirname(self.config["mpi"]['header']))
 
                 filename = match.group(1)[1:-1].strip()
                 path = filename
@@ -166,6 +165,7 @@ class SrcFile(object):
 
         # set default values
         self.tree = None
+        self.config = config
         self.srcpath = srcpath
         self.realpath = os.path.realpath(self.srcpath)
 

@@ -152,7 +152,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
 
     from fortlab.kgutils import KGName, pack_innamepath, match_namepath
     from fortlab.analyze.kgparse import ResState
-    from fortlab.analyze.kgextra import Intrinsic_Procedures
+    from fortlab.analyze.kgintrinsics import Intrinsic_Procedures
     from fortlab.analyze.base_classes import is_except
 
     if node is None: return
@@ -164,7 +164,9 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
 
         # skip if intrinsic
         if node.string.lower() in Intrinsic_Procedures:
-            if  config["search"]['skip_intrinsic'] and not is_except(node, stmt):
+            excepts = config["search"]['except']
+
+            if  config["search"]['skip_intrinsic'] and not is_except(node, stmt, excepts):
                 if hasattr(node, 'parent') and not isinstance(node.parent, Fortran2003.Part_Ref) and \
                     not (isinstance(node.parent, Fortran2003.Function_Reference) and node.string.lower()=='null') and \
                     not (isinstance(node.parent, Fortran2003.Specific_Binding) and node.string.lower()=='null'):
@@ -180,7 +182,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
                     #logger.debug('\tin %s'% stmt.reader.id)
                     return
     
-            elif not config["search"]['skip_intrinsic'] and is_except(node, stmt): 
+            elif not config["search"]['skip_intrinsic'] and is_except(node, stmt, excepts): 
                 if hasattr(node, 'parent') and not isinstance(node.parent, Fortran2003.Part_Ref) and \
                     not (isinstance(node.parent, Fortran2003.Function_Reference) and node.string.lower()=='null') and \
                     not (isinstance(node.parent, Fortran2003.Specific_Binding) and node.string.lower()=='null'):

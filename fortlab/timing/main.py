@@ -5,7 +5,7 @@ from collections import OrderedDict
 from configparser import ConfigParser
 from microapp import App
 
-from fortlab.kgutils import logger, remove_multiblanklines
+from fortlab.kgutils import logger, remove_multiblanklines, dequote, UserException
 from fortlab.kggenfile import gensobj, KERNEL_ID_0, event_register, Gen_Statement, set_indent, init_plugins
 
 
@@ -20,15 +20,34 @@ class FortranTimingCodegen(App):
         self.genfiles = []
 
         self.add_argument("analysis", help="analysis object")
+        self.add_argument("--cleancmd", type=str, help="Software clean command.")
+        self.add_argument("--buildcmd", metavar="build command", help="Software build command")
+        self.add_argument("--runcmd", metavar="run command", help="Software run command")
         self.add_argument("--outdir", help="output directory")
         self.add_argument("--no-cache", action="store_true",
                             help="force to collect timing data")
 
-        #self.register_forward("analysis", help="analysis object")
+        self.register_forward("etimedir", help="elapsedtime instrumented code directory")
+        self.register_forward("modeldir", help="elapsedtime data directory")
 
     def perform(self, args):
 
         self.config = args.analysis["_"]
+
+        if args.cleancmd:
+            self.config["cmd_clean"]['cmds'] = dequote(args.cleancmd["_"])
+
+        if args.buildcmd:
+            self.config["cmd_build"]['cmds'] = dequote(args.buildcmd["_"])
+
+        else:
+            raise UserException("'--buildcmd' option is not given.")
+
+        if args.runcmd:
+            self.config["cmd_run"]['cmds'] = dequote(args.runcmd["_"])
+
+        else:
+            raise UserException("'--runcmd' option is not given.")
 
         # create directory if needed
         args.outdir = args.outdir["_"] if args.outdir else os.getcwd()
@@ -40,10 +59,12 @@ class FortranTimingCodegen(App):
 
         #etimedir = os.path.join(args.outdir, "etime")
 
-        if not self.hasmodel(args.outdir) or args.no_cache:
+        model_realpath = os.path.realpath(os.path.join(args.outdir, "model"))
+        etime_realpath = os.path.realpath(os.path.join(args.outdir, "etime"))
 
-            model_realpath = os.path.realpath(os.path.join(args.outdir, "model"))
-            etime_realpath = os.path.realpath(os.path.join(args.outdir, "etime"))
+        self.add_forward(etimedir=etime_realpath, modeldir=model_realpath)
+
+        if not self.hasmodel(args.outdir) or args.no_cache:
             data_etime_path = os.path.join(model_realpath, "__data__",
                                 self.config["model"]['types']['etime']['id'])
 
@@ -266,14 +287,16 @@ class FortranTimingCodegen(App):
             self.write(f, '')
             if len(self.config["cmd_run"]['cmds']) > 0:
                 self.write(f, 'run: build')
-                self.write(f, '%scd %s; %s'%(prerun_run_str, cwd, self.config["cmd_run"]['cmds']), t=True)
+                #self.write(f, '%scd %s; %s'%(prerun_run_str, cwd, self.config["cmd_run"]['cmds']), t=True)
+                self.write(f, '%s%s'%(prerun_run_str, self.config["cmd_run"]['cmds']), t=True)
             else:
                 self.write(f, 'echo "No information is provided to run. Please specify run commands using \'state-run\' command line option"; exit -1', t=True)
             self.write(f, '')
 
             if len(self.config["cmd_build"]['cmds'])>0:
                 self.write(f, 'build: %s'%self.config["state_switch"]['type'])
-                self.write(f, '%scd %s; %s'%(prerun_build_str, cwd, self.config["cmd_build"]['cmds']), t=True)
+                #self.write(f, '%scd %s; %s'%(prerun_build_str, cwd, self.config["cmd_build"]['cmds']), t=True)
+                self.write(f, '%s%s'%(prerun_build_str, self.config["cmd_build"]['cmds']), t=True)
                 for org_file in org_files:
                     self.write(f, 'mv -f %(f)s.kgen_org %(f)s'%{'f':org_file}, t=True)
             else:
