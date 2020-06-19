@@ -2,7 +2,7 @@ import os
 import random
 import json
 from fortlab.kgplugin import Kgen_Plugin
-from fortlab.analyze import block_statements, statements, typedecl_statements
+from fortlab.resolver import block_statements, statements, typedecl_statements
 import collections
 
 BEFORE_CALLSITE = 'before_callsite'
