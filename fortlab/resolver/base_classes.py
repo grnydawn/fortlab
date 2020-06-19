@@ -16,10 +16,10 @@ import re
 import sys
 import copy
 from collections import OrderedDict
-from fortlab.analyze.readfortran import Line, Comment
+from fortlab.resolver.readfortran import Line, Comment
 #from numpy.distutils.misc_util import yellow_text, red_text # KGEN deletion
-from fortlab.analyze.utils import split_comma, specs_split_comma, is_int_literal_constant
-from fortlab.analyze.utils import classes
+from fortlab.resolver.utils import split_comma, specs_split_comma, is_int_literal_constant
+from fortlab.resolver.utils import classes
 
 #logger = logging.getlogger('fparser') # KGEN deletion
 
@@ -28,7 +28,7 @@ from fortlab.analyze.utils import classes
 #logger = logging.getLogger('kgen')
 
 from fortlab.kgutils import KGName, ProgramException, traverse, logger
-from fortlab.analyze.kgintrinsics import Intrinsic_Procedures
+from fortlab.resolver.kgintrinsics import Intrinsic_Procedures
 
 class KGen_Resolver(object):
     def __init__(self, name):
@@ -352,7 +352,7 @@ class Variable(object):
     def is_intent_aux(self): return  self.intent and 'AUX' in self.intent
 
     def is_private(self):
-        from fortlab.analyze.block_statements import BeginSource
+        from fortlab.resolver.block_statements import BeginSource
         if 'PUBLIC' in self.attributes: return False
         if 'PRIVATE' in self.attributes: return True
         # start of KGEN
@@ -724,7 +724,7 @@ class Statement(object):
 #            return self.item.apply_map(self.tofortran().lstrip())
 
     def ancestors(self, include_beginsource=False):
-        from fortlab.analyze.block_statements import BeginSource, HasUseStmt, Type
+        from fortlab.resolver.block_statements import BeginSource, HasUseStmt, Type
 
         anc = []
 
@@ -741,8 +741,8 @@ class Statement(object):
         return anc
  
     def parse_f2003(self):
-        from fortlab.analyze.block_statements import BeginSource, SubProgramStatement
-        from fortlab.analyze.statements import Continue
+        from fortlab.resolver.block_statements import BeginSource, SubProgramStatement
+        from fortlab.resolver.statements import Continue
 
         if not hasattr(self, 'f2003'):
             if hasattr(self, 'f2003_class'):
@@ -798,7 +798,7 @@ class Statement(object):
                 raise ProgramException('Class %s does not have f2003_class attribute.' % self.__class__)
 
     def set_parent(self, node, bag, depth):
-        from fortlab.analyze import Fortran2003
+        from fortlab.resolver import Fortran2003
 
         if hasattr(node, 'item') and node.item and isinstance(node.item, Fortran2003.Base):
             node.item.parent = node
@@ -857,8 +857,8 @@ class Statement(object):
         return expr
 
     def can_resolve(self, request):
-        from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
-        from fortlab.analyze.block_statements import SubProgramStatement
+        from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
+        from fortlab.resolver.block_statements import SubProgramStatement
 
         if request is None: return False
 
@@ -940,12 +940,12 @@ class Statement(object):
         return None
 
     def resolve(self, request, config):
-        from fortlab.analyze.kgparse import ResState
-        from fortlab.analyze.block_statements import BeginSource
-        from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
-        from fortlab.analyze.api import walk
-        from fortlab.analyze.block_statements import SubProgramStatement
+        from fortlab.resolver.kgparse import ResState
+        from fortlab.resolver.block_statements import BeginSource
+        from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
+        from fortlab.resolver.api import walk
+        from fortlab.resolver.block_statements import SubProgramStatement
 
         if request is None: return
         logger.debug('%s is being resolved'%request.uname.firstpartname())
@@ -1112,15 +1112,15 @@ class BeginStatement(Statement):
         else: return True
 
     def resolve(self, request, config):
-        from fortlab.analyze.kgparse import ResState
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
+        from fortlab.resolver.kgparse import ResState
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
         from fortlab.kgutils import pack_exnamepath
-        from fortlab.analyze.block_statements import HasUseStmt, Type, TypeDecl, Function, Subroutine, Interface, Associate
-        from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
-        from fortlab.analyze.statements import External, Use, GenericBinding, SpecificBinding, Call
-        from fortlab.analyze.api import walk
-        from fortlab.analyze.block_statements import SubProgramStatement
-        from fortlab.analyze import Fortran2003
+        from fortlab.resolver.block_statements import HasUseStmt, Type, TypeDecl, Function, Subroutine, Interface, Associate
+        from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
+        from fortlab.resolver.statements import External, Use, GenericBinding, SpecificBinding, Call
+        from fortlab.resolver.api import walk
+        from fortlab.resolver.block_statements import SubProgramStatement
+        from fortlab.resolver import Fortran2003
 
         if request is None: return
 
@@ -1590,7 +1590,7 @@ class BeginStatement(Statement):
                     break
             elif isinstance(item, Comment):
                 #KGEN self.content.append(classes.Comment(self, item))
-                from fortlab.analyze.statements import Comment as newComment 
+                from fortlab.resolver.statements import Comment as newComment 
                 self.content.append(newComment(self, item))
             else:
                 raise NotImplementedError(str(item))

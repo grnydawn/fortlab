@@ -5,10 +5,10 @@
 #Created: Oct 2006
 
 import re
-from fortlab.analyze.splitline import string_replace_map
-from fortlab.analyze import pattern_tools as pattern
-#import fortlab.analyze.pattern_tools as pattern
-from fortlab.analyze.readfortran import FortranReaderBase
+from fortlab.resolver.splitline import string_replace_map
+from fortlab.resolver import pattern_tools as pattern
+#import fortlab.resolver.pattern_tools as pattern
+from fortlab.resolver.readfortran import FortranReaderBase
 
 from fortlab.kgutils import logger
 #import logging
@@ -342,7 +342,7 @@ class SequenceBase(Base):
     <sequence-base> = <obj>, <obj> [ , <obj> ]...
     """
     def match(separator, subcls, string):
-        from fortlab.analyze.utils import entity_split_comma
+        from fortlab.resolver.utils import entity_split_comma
         line, repmap = string_replace_map(string)
         if isinstance(separator, str):
             #splitted = line.split(separator) # KGEN deletion

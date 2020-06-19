@@ -9,9 +9,9 @@ from fortlab.kgutils import logger, remove_multiblanklines, dequote, UserExcepti
 from fortlab.kggenfile import gensobj, KERNEL_ID_0, event_register, Gen_Statement, set_indent, init_plugins
 
 
-class FortranTimingCodegen(App):
+class FortranTimingGenerator(App):
 
-    _name_ = "timingcodegen"
+    _name_ = "timinggen"
     _version_ = "0.1.0"
 
     def __init__(self, mgr):
@@ -223,9 +223,6 @@ class FortranTimingCodegen(App):
             cfg.write(mf)
 
 
-
-
-
     def addmodel(self, modeltype, sections):
 
         modelfile = '%s/%s'%(self.config["path"]['outdir'], self.config["modelfile"])
@@ -287,7 +284,6 @@ class FortranTimingCodegen(App):
             self.write(f, '')
             if len(self.config["cmd_run"]['cmds']) > 0:
                 self.write(f, 'run: build')
-                #self.write(f, '%scd %s; %s'%(prerun_run_str, cwd, self.config["cmd_run"]['cmds']), t=True)
                 self.write(f, '%s%s'%(prerun_run_str, self.config["cmd_run"]['cmds']), t=True)
             else:
                 self.write(f, 'echo "No information is provided to run. Please specify run commands using \'state-run\' command line option"; exit -1', t=True)
@@ -295,7 +291,6 @@ class FortranTimingCodegen(App):
 
             if len(self.config["cmd_build"]['cmds'])>0:
                 self.write(f, 'build: %s'%self.config["state_switch"]['type'])
-                #self.write(f, '%scd %s; %s'%(prerun_build_str, cwd, self.config["cmd_build"]['cmds']), t=True)
                 self.write(f, '%s%s'%(prerun_build_str, self.config["cmd_build"]['cmds']), t=True)
                 for org_file in org_files:
                     self.write(f, 'mv -f %(f)s.kgen_org %(f)s'%{'f':org_file}, t=True)

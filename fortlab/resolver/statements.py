@@ -31,17 +31,17 @@ import re
 import os
 import sys
 
-from fortlab.analyze.base_classes import Statement, Variable
+from fortlab.resolver.base_classes import Statement, Variable
 
 # Auxiliary tools
 
-from fortlab.analyze.utils import split_comma, specs_split_comma, AnalyzeError, ParseError,\
+from fortlab.resolver.utils import split_comma, specs_split_comma, AnalyzeError, ParseError,\
      get_module_file, parse_bind, parse_result, is_name, classes
 #from utils import classes
 
 # start of KGEN addition
-#import fortlab.analyze.Fortran2003 as Fortran2003
-from fortlab.analyze import Fortran2003
+#import fortlab.resolver.Fortran2003 as Fortran2003
+from fortlab.resolver import Fortran2003
 from fortlab.kgutils import traverse, pack_innamepath, ProgramException, UserException, logger
 
 #import logging
@@ -194,15 +194,15 @@ class StmtFuncStatement(Statement):
     _repr_attr_names = ['variable','sign','expr'] + Statement._repr_attr_names
 
     def process_item(self):
-        from fortlab.analyze.block_statements import declaration_construct
+        from fortlab.resolver.block_statements import declaration_construct
 
         def get_names(node, bag, depth):
-            from fortlab.analyze.Fortran2003 import Name
+            from fortlab.resolver.Fortran2003 import Name
             if isinstance(node, Name) and node.string not in bag:
                 bag.append(node.string)
 
         def get_partrefs(node, bag, depth):
-            from fortlab.analyze.Fortran2003 import Part_Ref
+            from fortlab.resolver.Fortran2003 import Part_Ref
             if isinstance(node, Part_Ref):
                 bag.append(True)
 
@@ -787,7 +787,7 @@ class Contains(Statement):
         return 'CONTAINS'
 
     def resolve_uname(self, uname, request):
-        from fortlab.analyze.block_statements import SubProgramStatement
+        from fortlab.resolver.block_statements import SubProgramStatement
         if isinstance(request.res_stmts[-1], SubProgramStatement):
             self.add_geninfo(uname, request)
     # end of KGEN addition
@@ -955,7 +955,7 @@ class Access(Statement):
 
     def analyze(self):
         # start of KGEN addition
-        from fortlab.analyze.block_statements import TypeDecl
+        from fortlab.resolver.block_statements import TypeDecl
         if not hasattr(self.parent, 'spec_stmts'):
             self.parent.spec_stmts = []
         self.parent.spec_stmts.append(self)
@@ -1387,8 +1387,8 @@ class Use(Statement):
             self.supporting_names = public_names
 
         def resolve(self, request):
-            from fortlab.analyze.kgparse import ResState
-            from fortlab.analyze.api import parse
+            from fortlab.resolver.kgparse import ResState
+            from fortlab.resolver.api import parse
 
             if request.state != ResState.RESOLVED and request.uname.firstpartname() in self.supporting_names:
                 #tree = parse('!kgen dummy comment for intrinsic module', \
@@ -1421,7 +1421,7 @@ class Use(Statement):
             self.used = []
 
     def intrinsic_module(self, modname):
-        from fortlab.analyze.kgintrinsics import Intrinsic_Modules
+        from fortlab.resolver.kgintrinsics import Intrinsic_Modules
 
         if modname.upper() in Intrinsic_Modules:
             return self.KgenIntrinsicModule(Intrinsic_Modules[modname.upper()])
@@ -1440,9 +1440,9 @@ class Use(Statement):
             UserException('Not supported section name in exclusion input file: %s'%section)
 
     def resolve(self, request, config):
-        from fortlab.analyze.kgparse import ResState, SrcFile
+        from fortlab.resolver.kgparse import ResState, SrcFile
         from fortlab.kgutils import match_namepath
-        from fortlab.analyze.kgintrinsics import Intrinsic_Modules
+        from fortlab.resolver.kgintrinsics import Intrinsic_Modules
 
         src = None
         if self.module is None:
@@ -1484,7 +1484,7 @@ class Use(Statement):
 
     def tokgen(self):
         def get_rename(node, bag, depth):
-            from fortlab.analyze.Fortran2003 import Rename
+            from fortlab.resolver.Fortran2003 import Rename
             if isinstance(node, Rename) and node.items[1].string==bag['newname']:
                 bag['onlyitem'] = '%s => %s'%(node.items[1].string, node.items[2].string)
                 return True
@@ -1525,8 +1525,8 @@ class Use(Statement):
         if self.name not in modules:
             fn = self.reader.find_module_source_file(self.name)
             if fn is not None:
-                from fortlab.analyze.readfortran import FortranFileReader
-                from fortlab.analyze.parsefortran import FortranParser
+                from fortlab.resolver.readfortran import FortranFileReader
+                from fortlab.resolver.parsefortran import FortranParser
                 self.info('looking module information from %r' % (fn))
                 reader = FortranFileReader(fn, include_dirs=self.reader.include_dirs, source_only=self.reader.source_only)
                 parser = FortranParser(reader)
@@ -1639,8 +1639,8 @@ class Parameter(Statement):
 
     # start of KGEN addition
     def resolve_uname(self, uname, request):
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
-        from fortlab.analyze.kgparse import ResState
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
+        from fortlab.resolver.kgparse import ResState
 
         if uname.firstpartname() in self.leftnames:
             self.add_geninfo(uname, request)
@@ -1704,7 +1704,7 @@ class Equivalence(Statement):
     # start of KGEN addition
     def resolve_uname(self, uname, request):
         def get_equivname(node, bag, depth):
-            from fortlab.analyze.Fortran2003 import Equivalence_Object_List, Equivalence_Set, Name
+            from fortlab.resolver.Fortran2003 import Equivalence_Object_List, Equivalence_Set, Name
             if isinstance(node, Name) and node.string==uname.firstpartname():
                 if isinstance(node.parent, Equivalence_Set):
                     bag['equiv_names'].append(node.parent.items[1])

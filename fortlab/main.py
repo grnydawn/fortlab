@@ -1,18 +1,26 @@
 from microapp import Project
 
-from fortlab.compile import MicroappCompile
-from fortlab.analyze import FortranAnalyzer
-from fortlab.timing import FortranTimingCodegen
+# TODO: buildmodel and runmodell will go to langlab project
+
+from fortlab.scanner import MicroappBuildScanner, MicroappRunScanner
+from fortlab.scanner.compile import FortranCompilerOption
+from fortlab.scanner.timing import FortranTimingGenerator
+from fortlab.resolver import FortranNameResolver
+from fortlab.kernel import FortranKernelGenerator
+from fortlab.state import FortranStateGenerator
 
 class Fortlab(Project):
     _name_ = "fortlab"
-    _version_ = "0.1.3"
+    _version_ = "0.1.4"
     _description_ = "Fortran Analysis Utilities"
     _long_description_ = "Tools for Analysis of Fortran Application and Source code"
     _author_ = "Youngsung Kim"
     _author_email_ = "youngsung.kim.act2@gmail.com"
     _url_ = "https://github.com/grnydawn/fortlab"
-    _builtin_apps_ = [MicroappCompile, FortranAnalyzer, FortranTimingCodegen]
+    _builtin_apps_ = [MicroappBuildScanner, MicroappRunScanner,
+                      FortranCompilerOption, FortranNameResolver,
+                      FortranTimingGenerator, FortranKernelGenerator,
+                      FortranStateGenerator]
     _requires_ = ["dict2json>=0.1.2"]
 
     def __init__(self):

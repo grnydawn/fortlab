@@ -6,15 +6,15 @@ from collections import OrderedDict
 
 from microapp import App
 from fortlab.kgutils import UserException, ProgramException, logger, KGName
-from fortlab.analyze import kgparse
+from fortlab.resolver import kgparse
 #from kgconfig import Config
-from fortlab.analyze import statements
+from fortlab.resolver import statements
 
 
 
-class FortranAnalyzer(App):
+class FortranNameResolver(App):
 
-    _name_ = "analyze"
+    _name_ = "resolve"
     _version_ = "0.1.0"
 
     def __init__(self, mgr):
@@ -259,8 +259,8 @@ class FortranAnalyzer(App):
 
     def perform(self, args):
 
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
-        import fortlab.analyze.kganalyze as kganalyze
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
+        import fortlab.resolver.kganalyze as kganalyze
 
         if args.compile_info:
             cinfo = args.compile_info["_"]
@@ -363,7 +363,7 @@ class FortranAnalyzer(App):
 #            prevstmt = anc
 #
     def add_geninfo_ancestors(self, stmt):
-        from fortlab.analyze.block_statements import EndStatement
+        from fortlab.resolver.block_statements import EndStatement
 
         ancs = stmt.ancestors()
 

@@ -23,13 +23,13 @@ __all__ = ['BeginSource','Module','PythonModule','Program','BlockData','Interfac
 import re
 import sys
 
-from fortlab.analyze.base_classes import BeginStatement, EndStatement, Statement,\
+from fortlab.resolver.base_classes import BeginStatement, EndStatement, Statement,\
      AttributeHolder, ProgramBlock, Variable
-from fortlab.analyze.readfortran import Line
-from fortlab.analyze.utils import split_comma, filter_stmts, parse_bind, parse_result, AnalyzeError, is_name
+from fortlab.resolver.readfortran import Line
+from fortlab.resolver.utils import split_comma, filter_stmts, parse_bind, parse_result, AnalyzeError, is_name
 
-#import fortlab.analyze.Fortran2003 as Fortran2003 # KGEN addition
-from fortlab.analyze import Fortran2003 # KGEN addition
+#import fortlab.resolver.Fortran2003 as Fortran2003 # KGEN addition
+from fortlab.resolver import Fortran2003 # KGEN addition
 #import logging # KGEN addition
 #logger = logging.getLogger('kgen') # KGEN addition
 from fortlab.kgutils import logger
@@ -572,8 +572,8 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
 
     # start of KGEN
     def resolve(self, request, config):
-        from fortlab.analyze.kgparse import ResState
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
+        from fortlab.resolver.kgparse import ResState
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
 
         if request is None: return
 
@@ -1568,13 +1568,13 @@ class Enum(BeginStatement):
 
 ###################################################
 
-from fortlab.analyze import statements
-from fortlab.analyze import typedecl_statements
+from fortlab.resolver import statements
+from fortlab.resolver import typedecl_statements
 __all__.extend(statements.__all__)
 __all__.extend(typedecl_statements.__all__)
 
-from fortlab.analyze.statements import *
-from fortlab.analyze.typedecl_statements import *
+from fortlab.resolver.statements import *
+from fortlab.resolver.typedecl_statements import *
 
 f2py_stmt = [Threadsafe, FortranName, Depend, Check, CallStatement,
              CallProtoArgument]

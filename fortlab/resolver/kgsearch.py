@@ -7,12 +7,12 @@ Module content
 # kgen_search.py
 
 from fortlab.kgutils import show_tree, logger
-from fortlab.analyze.kgparse import KGGenType
-import fortlab.analyze.Fortran2003 as Fortran2003
+from fortlab.resolver.kgparse import KGGenType
+import fortlab.resolver.Fortran2003 as Fortran2003
 #from typedecl_statements import TypeDeclarationStatement, TypeStmt, Procedure # TEEMP
-from fortlab.analyze.typedecl_statements import TypeDeclarationStatement, TypeStmt
-from fortlab.analyze.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
-from fortlab.analyze.statements import External, Common, SpecificBinding
+from fortlab.resolver.typedecl_statements import TypeDeclarationStatement, TypeStmt
+from fortlab.resolver.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
+from fortlab.resolver.statements import External, Common, SpecificBinding
 from collections import OrderedDict
 
 #import logging
@@ -151,9 +151,9 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
     """
 
     from fortlab.kgutils import KGName, pack_innamepath, match_namepath
-    from fortlab.analyze.kgparse import ResState
-    from fortlab.analyze.kgintrinsics import Intrinsic_Procedures
-    from fortlab.analyze.base_classes import is_except
+    from fortlab.resolver.kgparse import ResState
+    from fortlab.resolver.kgintrinsics import Intrinsic_Procedures
+    from fortlab.resolver.base_classes import is_except
 
     if node is None: return
 
@@ -604,7 +604,7 @@ def search_Declaration_Type_Spec(stmt, node, config, gentype=None):
 def search_Data_Ref(stmt, node, config, gentype=None):
     """ Identifying a name in Data_Ref node"""
     from fortlab.kgutils import KGName
-    from fortlab.analyze.Fortran2003 import Name, Part_Ref
+    from fortlab.resolver.Fortran2003 import Name, Part_Ref
 
     # NOTE: to limit the scope of data saving in derived type,
     #       the last part_ref would be the one that has config, gentype=gentype

@@ -1,11 +1,11 @@
-"""Microapp compiler inspector"""
+"""Microapp compiler flag inspector"""
 
 import sys
 import os
 import subprocess
 
 from microapp import App
-from fortlab.compile import kgcompiler
+from fortlab.scanner.compile import kgcompiler
 
 
 STR_EX = b'execve('
@@ -14,9 +14,9 @@ STR_UF = b'<unfinished'
 STR_RE = b'resumed>'
 
 
-class MicroappCompile(App):
+class FortranCompilerOption(App):
 
-    _name_ = "compile"
+    _name_ = "compileroption"
     _version_ = "0.1.0"
 
     def __init__(self, mgr):

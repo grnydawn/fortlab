@@ -21,7 +21,7 @@ def decode_NS(namepath):
 
 class KGName(object):
     def __init__(self, name, node=None, stmt=None):
-        from fortlab.analyze.Fortran2003 import Data_Ref
+        from fortlab.resolver.Fortran2003 import Data_Ref
         if not name: raise ProgramException('Name can not be none or blank')
         if name[0].isdigit(): raise ProgramException('Name can not have digit as its first character')
 
@@ -48,7 +48,7 @@ class KGName(object):
         return self.namelist[0]
 
     def firstpartname(self):
-        from fortlab.analyze.Fortran2003 import Name
+        from fortlab.resolver.Fortran2003 import Name
         if isinstance(self.dataref, Name):
             return self.dataref.string
         else:

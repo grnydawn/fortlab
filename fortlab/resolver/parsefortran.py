@@ -12,9 +12,9 @@ import sys
 import traceback
 #from numpy.distutils.misc_util import yellow_text, red_text # KGEN deletion
 
-from fortlab.analyze.readfortran import FortranFileReader, FortranStringReader
-from fortlab.analyze.block_statements import BeginSource
-from fortlab.analyze.utils import AnalyzeError
+from fortlab.resolver.readfortran import FortranFileReader, FortranStringReader
+from fortlab.resolver.block_statements import BeginSource
+from fortlab.resolver.utils import AnalyzeError
 from fortlab.kgutils import logger
 
 #import logging

@@ -12,12 +12,12 @@ import locale
 
 #import Fortran2003
 # import all Statement classes:
-#from fortlab.analyze.base_classes import classes
-from fortlab.analyze.base_classes import BeginStatement, EndStatement
-from fortlab.analyze.block_statements import *
+#from fortlab.resolver.base_classes import classes
+from fortlab.resolver.base_classes import BeginStatement, EndStatement
+from fortlab.resolver.block_statements import *
 
 # CHAR_BIT is used to convert object bit sizes to byte sizes
-from fortlab.analyze.utils import CHAR_BIT
+from fortlab.resolver.utils import CHAR_BIT
 
 def get_reader(input, isfree=None, isstrict=None, include_dirs = None, source_only = None,
                ignore_comments = True):
@@ -54,7 +54,7 @@ def get_reader(input, isfree=None, isstrict=None, include_dirs = None, source_on
     """
     import os
     import re
-    from fortlab.analyze.readfortran import FortranFileReader, FortranStringReader
+    from fortlab.resolver.readfortran import FortranFileReader, FortranStringReader
     if os.path.isfile(input):
         name,ext = os.path.splitext(input)
         if ext.lower() in ['.c']:
@@ -155,7 +155,7 @@ def parse(input, isfree=None, isstrict=None, include_dirs = None, source_only = 
     --------
     get_reader
     """
-    from fortlab.analyze.parsefortran import FortranParser
+    from fortlab.resolver.parsefortran import FortranParser
     reader = get_reader(input, isfree, isstrict, include_dirs, source_only)
     parser = FortranParser(reader, ignore_comments = ignore_comments)
     parser.parse()

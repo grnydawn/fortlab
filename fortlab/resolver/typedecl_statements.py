@@ -19,12 +19,12 @@ __all__ = ['Integer', 'Real', 'DoublePrecision', 'Complex', 'DoubleComplex',
 
 import re
 import string
-from fortlab.analyze.base_classes import Statement, BeginStatement, EndStatement,\
+from fortlab.resolver.base_classes import Statement, BeginStatement, EndStatement,\
      AttributeHolder, Variable
 #from utils import split_comma, AnalyzeError, name_re, is_entity_decl, is_name, CHAR_BIT, parse_array_spec
-from fortlab.analyze.utils import entity_split_comma, split_comma, AnalyzeError, name_re, is_entity_decl, is_name, CHAR_BIT, parse_array_spec
+from fortlab.resolver.utils import entity_split_comma, split_comma, AnalyzeError, name_re, is_entity_decl, is_name, CHAR_BIT, parse_array_spec
 
-from fortlab.analyze import Fortran2003 # KGEN addition
+from fortlab.resolver import Fortran2003 # KGEN addition
 from fortlab.kgutils import traverse # KGEN additon
 
 # Intrinsic type specification statements
@@ -146,7 +146,7 @@ class TypeDeclarationStatement(Statement):
         #line = item.get_line() # KGEN deletion
         itemline = item.get_line() # KGEN addition
         line = itemline[:] # KGEN addition
-        from fortlab.analyze.block_statements import Function
+        from fortlab.resolver.block_statements import Function
 
         if not line.lower().startswith(clsname):
             i = 0

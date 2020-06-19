@@ -2,17 +2,17 @@
 
 
 from fortlab.kgutils import KGName, ProgramException, UserException, traverse
-from fortlab.analyze.kgparse import KGGenType, SrcFile, ResState
-from fortlab.analyze.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, Actual_Arg_Spec_List, \
+from fortlab.resolver.kgparse import KGGenType, SrcFile, ResState
+from fortlab.resolver.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, Actual_Arg_Spec_List, \
     Section_Subscript_List, Actual_Arg_Spec, Structure_Constructor_2, Proc_Component_Ref
 from collections import OrderedDict
-from fortlab.analyze.typedecl_statements import TypeDeclarationStatement
-from fortlab.analyze.block_statements import SubProgramStatement, Associate
+from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
+from fortlab.resolver.block_statements import SubProgramStatement, Associate
 
 def update_state_info(parent, config):
 
     def get_nodes(node, bag, depth):
-        from fortlab.analyze.Fortran2003 import Name
+        from fortlab.resolver.Fortran2003 import Name
         if isinstance(node, Name) and node.string==bag['name'] and not node.parent in bag:
             anc = [node]
             while hasattr(node, 'parent'):
@@ -136,9 +136,9 @@ def analyze(config):
     analyze_callsite(config)
 
 def analyze_callsite(config):
-    from fortlab.analyze.block_statements import EndStatement, Subroutine, Function, Interface
-    from fortlab.analyze.statements import SpecificBinding
-    from fortlab.analyze.kgsearch import f2003_search_unknowns
+    from fortlab.resolver.block_statements import EndStatement, Subroutine, Function, Interface
+    from fortlab.resolver.statements import SpecificBinding
+    from fortlab.resolver.kgsearch import f2003_search_unknowns
 
     # read source file that contains callsite stmt
     cs_file = SrcFile(config["callsite"]['filepath'])

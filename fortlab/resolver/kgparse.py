@@ -3,9 +3,9 @@
 import os, io, locale
 #import os.path
 from fortlab.kgutils import UserException, pack_exnamepath, match_namepath, traverse, run_shcmd, logger
-from fortlab.analyze.statements import Comment
-from fortlab.analyze.block_statements import Module, Program
-from fortlab.analyze import api
+from fortlab.resolver.statements import Comment
+from fortlab.resolver.block_statements import Module, Program
+from fortlab.resolver import api
 from collections import OrderedDict
 
 #import logging
@@ -298,9 +298,9 @@ class SrcFile(object):
         return None, None
 
     def process_directive(self, config):
-        from fortlab.analyze.kgsearch import f2003_search_unknowns
-        from fortlab.analyze.statements import Comment
-        from fortlab.analyze.block_statements import executable_construct
+        from fortlab.resolver.kgsearch import f2003_search_unknowns
+        from fortlab.resolver.statements import Comment
+        from fortlab.resolver.block_statements import executable_construct
         import re
 
         def get_next_non_comment(stmt):

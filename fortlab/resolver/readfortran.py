@@ -81,9 +81,9 @@ import traceback
 from io import StringIO
 #from numpy.distutils.misc_util import yellow_text, red_text, blue_text # KGEN deletion
 
-from fortlab.analyze.sourceinfo import get_source_info, get_source_info_str
-from fortlab.analyze.splitline import String, string_replace_map, splitquote
-from fortlab.analyze.utils import is_name
+from fortlab.resolver.sourceinfo import get_source_info, get_source_info_str
+from fortlab.resolver.splitline import String, string_replace_map, splitquote
+from fortlab.resolver.utils import is_name
 from fortlab.kgutils import logger
 
 #import logging
@@ -386,7 +386,7 @@ class FortranReaderBase(object):
 
     def find_module_source_file(self, mod_name, config):
 
-        from fortlab.analyze.utils import get_module_file, module_in_file
+        from fortlab.resolver.utils import get_module_file, module_in_file
 
         if self.source_only:
             for sf in self.source_only:

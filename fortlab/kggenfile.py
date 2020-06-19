@@ -5,7 +5,7 @@ import os, re, sys, inspect
 from collections import OrderedDict
 from importlib import import_module
 
-from fortlab.analyze import api, base_classes, statements, block_statements, typedecl_statements, Fortran2003, kgparse
+from fortlab.resolver import api, base_classes, statements, block_statements, typedecl_statements, Fortran2003, kgparse
 from fortlab.kgutils import ProgramException, traverse, match_namepath, pack_innamepath, pack_exnamepath, logger
 from fortlab.kgplugin import Kgen_Plugin
 
@@ -759,7 +759,7 @@ class Gen_Statement(object):
         pass
 
     def str_unresolved(self, stmt):
-        from fortlab.analyze.kgparse import ResState
+        from fortlab.resolver.kgparse import ResState
 
         if not hasattr(stmt, 'unknowns'): return ''
 
