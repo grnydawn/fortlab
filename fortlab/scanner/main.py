@@ -1,4 +1,11 @@
-from microapp import App
+import os, json
+
+from microapp import App, appdict
+from collections import OrderedDict
+
+from fortlab.kggenfile import init_plugins, plugin_config, KERNEL_ID_0
+
+here = os.path.dirname(os.path.realpath(__file__))
 
 class MicroappBuildScanner(App):
     _name_ = "buildscan"
@@ -18,27 +25,28 @@ class MicroappBuildScanner(App):
 
     def perform(self, args):
 
-        cmd = ["compileroption", args.buildcmd["_"]]
+        #cmd = ["compileroption", args.buildcmd["_"]]
+        opts = [args.buildcmd["_"]]
 
         if args.cleancmd:
-            cmd += ["--cleancmd", args.cleancmd["_"]]
+            opts += ["--cleancmd", args.cleancmd["_"]]
 
         if args.workdir:
-            cmd += ["--workdir", args.workdir["_"]]
+            opts += ["--workdir", args.workdir["_"]]
 
         if args.outdir:
-            cmd += ["--outdir", args.outdir["_"]]
+            opts += ["--outdir", args.outdir["_"]]
 
         if args.savejson:
-            cmd += ["--savejson", args.savejson["_"]]
+            opts += ["--savejson", args.savejson["_"]]
 
         if args.verbose:
-            cmd += ["--verbose"]
+            opts += ["--verbose"]
 
         if args.check:
-            cmd += ["--check"]
+            opts += ["--check"]
 
-        ret, fwds = self.manager.run_command(cmd)
+        ret, fwds = self.run_subapp("compileroption", opts)
 
         self.add_forward(data=fwds["data"])
 
@@ -54,33 +62,166 @@ class MicroappRunScanner(App):
         self.add_argument("--buildcmd", metavar="build command", help="Software build command")
         self.add_argument("--runcmd", metavar="run command", help="Software run command")
         self.add_argument("--outdir", help="output directory")
+        self.add_argument("-s", "--add-scan", action="append", help="add scanning method")
         self.add_argument("--no-cache", action="store_true",
                             help="force to collect timing data")
 
-        self.register_forward("etimedir", help="elapsedtime instrumented code directory")
-        self.register_forward("modeldir", help="elapsedtime data directory")
+        self.register_forward("model", help="model data file")
+
+        # model parameters
+        self.config = appdict()
+
+        self.config['modelfile'] = 'model.ini'
+        self.config['model'] = OrderedDict()
+        self.config['model']['path'] = ""
+        self.config['model']['reuse_rawdata'] = True
+        self.config['model']['types'] = OrderedDict()
+        self.config['model']['types']['code'] = OrderedDict()
+        self.config['model']['types']['code']['id'] = '0'
+        self.config['model']['types']['code']['name'] = 'code'
+        self.config['model']['types']['code']['collector'] = 'codecollect'
+        self.config['model']['types']['code']['combiner'] = 'codecombine'
+        self.config['model']['types']['code']['percentage'] = 99.9
+        self.config['model']['types']['code']['filter'] = None
+        self.config['model']['types']['code']['ndata'] = 20
+        self.config['model']['types']['code']['enabled'] = False
+        self.config['model']['types']['etime'] = OrderedDict()
+        self.config['model']['types']['etime']['id'] = '1'
+        self.config['model']['types']['etime']['name'] = 'etime'
+        self.config['model']['types']['etime']['collector'] = 'timingcollect'
+        self.config['model']['types']['etime']['combiner'] = 'timingcombine'
+        self.config['model']['types']['etime']['nbins'] = 5
+        self.config['model']['types']['etime']['ndata'] = 20
+        self.config['model']['types']['etime']['minval'] = None
+        self.config['model']['types']['etime']['maxval'] = None
+        self.config['model']['types']['etime']['timer'] = None
+        self.config['model']['types']['etime']['enabled'] = True
+        self.config['model']['types']['papi'] = OrderedDict()
+        self.config['model']['types']['papi']['id'] = '2'
+        self.config['model']['types']['papi']['name'] = 'papi'
+        self.config['model']['types']['papi']['collector'] = 'papicollect'
+        self.config['model']['types']['papi']['combiner'] = 'papicombine'
+        self.config['model']['types']['papi']['nbins'] = 5
+        self.config['model']['types']['papi']['ndata'] = 20
+        self.config['model']['types']['papi']['minval'] = None
+        self.config['model']['types']['papi']['maxval'] = None
+        self.config['model']['types']['papi']['header'] = None
+        self.config['model']['types']['papi']['event'] = 'PAPI_TOT_INS'
+        self.config['model']['types']['papi']['static'] = None
+        self.config['model']['types']['papi']['dynamic'] = None
+        self.config['model']['types']['papi']['enabled'] = False
 
     def perform(self, args):
 
-        cmd = ["timinggen", "@analysis"]
 
-        if args.cleancmd:
-            cmd += ["--cleancmd", args.cleancmd["_"]]
+        ret, fwds = 0, {}
 
-        if args.buildcmd:
-            cmd += ["--buildcmd", args.buildcmd["_"]]
+        outdir = args.outdir["_"] if args.outdir else os.getcwd()
+        modeldir = os.path.join(outdir, "model")
 
-        if args.runcmd:
-            cmd += ["--runcmd", args.runcmd["_"]]
+        self.config["model"]["path"] = os.path.realpath(modeldir)
+ 
+        mtypes = {u"datatype": u"model", u"datamap": {}, u"collectmap": {},
+                  u"combinemap": {}}
 
-        if args.outdir:
-            cmd += ["--outdir", args.outdir["_"]]
+        scans = [s["_"] for s in args.add_scan]
 
-        if args.no_cache:
-            cmd += ["--no-cache"]
+        if args.add_scan is None or "timing" in scans:
+            ret, fwds = self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
 
-        ret, fwds = self.manager.run_command(cmd, forward={"analysis": args.analysis["_"]})
+        with open('%s/__data__/modeltypes' % modeldir, 'w') as fm:
+            json.dump(mtypes, fm)
+
+        ret, fwds = self.combine_model(modeldir)
 
         self.add_forward(**fwds)
 
+    def combine_model(self, modeldir):
+
+        #cmd = ["modelcombine", modeldir]
+
+        #return self.manager.run_command(cmd)
+        return self.run_subapp("modelcombine", [modeldir])
+
+    def scan_timing(self, args, modeldir, mtypes, config):
+
+        mtypes["datamap"][self.config['model']['types']['etime']['id']] = \
+            self.config['model']['types']['etime']['name']
+
+        mtypes["collectmap"][self.config['model']['types']['etime']['id']] = \
+            self.config['model']['types']['etime']['collector']
+
+        mtypes["combinemap"][self.config['model']['types']['etime']['id']] = \
+            self.config['model']['types']['etime']['combiner']
+
+        etime_plugindir = os.path.join(here, "timing", "plugins", "gencore")
+
+        init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, config)
+
+        plugin_config["current"].update(self.config)
+
+        #cmd = ["timinggen", "@analysis"]
+        opts = ["@analysis"]
+
+        if args.cleancmd:
+            opts += ["--cleancmd", args.cleancmd["_"]]
+
+        if args.buildcmd:
+            opts += ["--buildcmd", args.buildcmd["_"]]
+
+        if args.runcmd:
+            opts += ["--runcmd", args.runcmd["_"]]
+
+        if args.outdir:
+            opts += ["--outdir", args.outdir["_"]]
+
+        if args.no_cache:
+            opts += ["--no-cache"]
+
+        #ret, fwds = self.manager.run_command(cmd, forward={"analysis": config})
+        ret, fwds = self.run_subapp("timinggen", opts, forward={"analysis": config})
+
+        #cmd = "shell 'cd %s; make; make recover' --useenv" % fwds["etimedir"]
+        opts = ["'cd %s; make; make recover'" % fwds["etimedir"], "--useenv"]
+
+        return self.run_subapp("shell", opts)
+
+
+        
+class MicroappModelCombiner(App):
+
+    _name_ = "modelcombine"
+    _version_ = "0.1.0"
+
+    def __init__(self, mgr):
+
+        self.add_argument("modeldir", metavar="raw datadir", help="Raw model data directory")
+        self.add_argument("-o", "--output", type=str, help="output path.")
+
+        #self.register_forward("data", help="json object")
+
+
+    def perform(self, args):
+
+        modeldir = args.modeldir["_"]
+        datadir = os.path.join(modeldir, "__data__")
+        metafile = os.path.join(datadir, "modeltypes")
+
+        with open(metafile, 'r') as fm:
+            mtypes = json.load(fm)
+
+            for scanid, scanname in mtypes["datamap"].items():
+                scandir = os.path.join(datadir, scanid)
+
+                if os.path.isdir(scandir) and len(os.listdir(scandir)):
+                    collector = mtypes["collectmap"][scanid]
+                    #cmd = collector + " " + scandir
+                    #ret, fwds = self.manager.run_command(cmd)
+                    ret, fwds = self.run_subapp(collector, [scandir])
+
+                    combiner = mtypes["combinemap"][scanid]
+                    #cmd = combiner + " @data"
+                    #ret, fwds = self.manager.run_command(cmd,
+                    ret, fwds = self.run_subapp(combiner, ["@data"],
+                                    forward={"data": fwds["data"]})
 

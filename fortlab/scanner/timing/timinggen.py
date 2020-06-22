@@ -102,12 +102,12 @@ class FortranTimingGenerator(App):
                         self.config["used_srcfiles"][filepath] = (sfile, mods_used, units_used)
 
 
-                here = os.path.dirname(os.path.realpath(__file__))
-                etime_plugindir = os.path.join(here, "plugins", "gencore")
-
-                self.config["path"]["model_path"] = model_realpath 
-
-                init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, self.config)
+#                here = os.path.dirname(os.path.realpath(__file__))
+#                etime_plugindir = os.path.join(here, "plugins", "gencore")
+#
+#                self.config["path"]["model_path"] = model_realpath 
+#
+#                init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, self.config)
 
                 # process each nodes in the tree
                 for plugin_name in event_register.keys():

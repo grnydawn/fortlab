@@ -2,9 +2,11 @@ from microapp import Project
 
 # TODO: buildmodel and runmodell will go to langlab project
 
-from fortlab.scanner import MicroappBuildScanner, MicroappRunScanner
+from fortlab.scanner import (MicroappBuildScanner, MicroappRunScanner,
+                             MicroappModelCombiner)
 from fortlab.scanner.compile import FortranCompilerOption
-from fortlab.scanner.timing import FortranTimingGenerator
+from fortlab.scanner.timing import (FortranTimingGenerator,
+            FortranTimingCollector, FortranTimingCombiner)
 from fortlab.resolver import FortranNameResolver
 from fortlab.kernel import FortranKernelGenerator
 from fortlab.state import FortranStateGenerator
@@ -20,7 +22,8 @@ class Fortlab(Project):
     _builtin_apps_ = [MicroappBuildScanner, MicroappRunScanner,
                       FortranCompilerOption, FortranNameResolver,
                       FortranTimingGenerator, FortranKernelGenerator,
-                      FortranStateGenerator]
+                      FortranStateGenerator, MicroappModelCombiner,
+                      FortranTimingCollector, FortranTimingCombiner]
     _requires_ = ["dict2json>=0.1.2"]
 
     def __init__(self):

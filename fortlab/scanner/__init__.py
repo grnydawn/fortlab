@@ -1,1 +1,1 @@
-from .main import MicroappBuildScanner, MicroappRunScanner
+from .main import MicroappBuildScanner, MicroappRunScanner, MicroappModelCombiner

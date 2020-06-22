@@ -139,8 +139,10 @@ class FortranCompilerOption(App):
 
         if args.savejson:
             jsonfile = args.savejson["_"]
-            cmd = ["dict2json", "@flags", "-o", jsonfile]
-            self.manager.run_command(cmd, forward={"flags": flags})
+            #cmd = ["dict2json", "@flags", "-o", jsonfile]
+            opts = ["@flags", "-o", jsonfile]
+            #self.manager.run_command(cmd, forward={"flags": flags})
+            self.run_subapp("dict2json", opts, forward={"flags": flags})
 
         os.chdir(orgcwd)
 

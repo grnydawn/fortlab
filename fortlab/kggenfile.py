@@ -341,7 +341,7 @@ def getinfo(name, plugin=None):
         elif name=='papi_typeid': return plugin_config["current"]["model"]['types']['papi']['id']
         elif name=='papi_typename': return plugin_config["current"]["model"]['types']['papi']['name']
         elif name=='etime_timer': return plugin_config["current"]["model"]['types']['etime']['timer']
-        elif name=='model_path': return plugin_config["current"]["path"]['model_path']
+        elif name=='model_path': return plugin_config["current"]["model"]['path']
         elif name=='is_papi_enabled': return plugin_config["current"]["model"]['types']['papi']['enabled']
         elif name=='papi_header_file': return None if plugin_config["current"]["model"]['types']['papi']['header'] is None else os.path.basename(plugin_config["current"]["model"]['types']['papi']['header'])
         elif name=='papi_header_path': return None if plugin_config["current"]["model"]['types']['papi']['header'] is None else plugin_config["current"]["model"]['types']['papi']['header']

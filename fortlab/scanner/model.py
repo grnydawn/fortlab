@@ -3,9 +3,9 @@
 from microapp import App
 
 
-class MicroappModelgen(App):
+class MicroappModelCombiner(App):
 
-    _name_ = "modelgen"
+    _name_ = "modelcombine"
     _version_ = "0.1.0"
 
     def __init__(self, mgr):

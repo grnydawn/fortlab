@@ -1,86 +1,242 @@
 """Microapp compiler inspector"""
 
-from microapp import App
+import os, shutil
+
+from collections import Mapping
+
+from microapp import App, register_appclass, unregister_appclass
+
+def _update(d, u):
+    for k, v in u.items():
+        if isinstance(v, Mapping):
+            r = _update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            if k in d:
+                if isinstance( u[k], int ):
+                    d[k] += u[k]
+                else:
+                    d[k] = u[k]
+            else:
+                d[k] = u[k]
+    return d
 
 
-class FortranTimingModel(App):
+class FortranTimingCollector(App):
 
-    _name_ = "timingmodel"
+    _name_ = "timingcollect"
     _version_ = "0.1.0"
 
     def __init__(self, mgr):
 
-        self.add_argument("modeldir", metavar="raw datadir", help="Raw model data directory")
+        self.add_argument("datadir", help="raw data directory")
         self.add_argument("-o", "--output", type=str, help="output path.")
 
-        #self.register_forward("data", help="json object")
+        self.register_forward("data", help="timing raw data")
+
+    def perform(self, args):
+
+        datadir = args.datadir["_"]
+
+        # collect data
+        etimes = {} # mpirank:omptid:invoke=[(fileid, linenum, numvisits), ... ]
+        etimemin = 1.0E100
+        etimemax = 0.0
+        netimes = 0
+        etimeresol = 0.0
+        nexcluded_under = 0
+        nexcluded_over = 0
+
+        mpipaths = []
+        for item in os.listdir(datadir):
+            try:
+                mpirank, ompthread = item.split('.')
+                if mpirank.isdigit() and ompthread.isdigit():
+                    mpipaths.append((datadir, mpirank, ompthread))
+            except:
+                pass
+
+        nprocs = 1
+        fwds = {"data": mpipaths}
+        group_opts = ["--multiproc", "%d" % nprocs, "--assigned-input",
+               "data:@data", "--clone", "%d" % len(mpipaths), "--forwarding", "accumulate"]
+        #group_opts = ["--assigned-input", "data:@data", "--clone", "%d" % len(mpipaths), "--forwarding", "accumulate"]
+        app_args = ["_tcollect", "@data"]
+
+        register_appclass(_TCollect)
+
+        #ret, fwds = self.manager.run_command(cmd, forward=fwds)
+        ret, fwds = self.run_subgroup(group_args=group_opts, app_args=app_args, forward=fwds)
+
+        unregister_appclass(_TCollect)
+
+        for grp, pathouts in fwds.items():
+            for pathout in pathouts:
+                etime, emeta = pathout["data"]
+
+                _update(etimes, etime)
+
+                etimemin = min(etimemin, emeta[0])
+                etimemax = max(etimemax, emeta[1])
+                netimes += emeta[2]
+                etimeresol = max(etimeresol, emeta[3])
+                nexcluded_under += emeta[4]
+                nexcluded_over += emeta[5]
+
+        if len(etimes) == 0:
+            shutil.rmtree(datadir)
+
+        self.add_forward(data=etimes)
+
+        
+class _TCollect(App):
+
+    _name_ = "_tcollect"
+    _version_ = "0.1.0"
+
+    def __init__(self, mgr):
+
+        self.add_argument("data", help="input data")
+        self.add_argument("-o", "--output", type=str, help="output path.")
+
+        self.register_forward("data", help="timing data")
+
+    def perform(self, args):
+
+        # collect data
+        etimes = {} # mpirank:omptid:invoke=[(fileid, linenum, numvisits), ... ]
+        emeta = [ 1.0E100, 0.0, 0, 0.0, 0, 0 ] #  min, max, number, resolution, under limit, over limit
+
+#        etimemin_limit = Config.model['types']['etime']['minval']
+#        etimemax_limit = Config.model['types']['etime']['maxval']
+        etimemin_limit = None
+        etimemax_limit = None
+
+        etimeroot, mpirank, ompthread = args.data["_"]
+
+        try:
+            if mpirank not in etimes: etimes[mpirank] = {}
+            if ompthread not in etimes[mpirank]: etimes[mpirank][ompthread] = {}
+
+            with open(os.path.join(etimeroot, '%s.%s'%(mpirank, ompthread)), 'r') as f:
+                for line in f:
+                    invoke, start, stop, resolution = line.split()
+                    estart = float(start)
+                    estop = float(stop)
+                    ediff = estop - estart
+                    if etimemin_limit is not None and ediff < etimemin_limit:
+                        emeta[4] += 1
+                    elif etimemax_limit is not None and ediff > etimemax_limit:
+                        emeta[5] += 1
+                    else:
+                        etimes[mpirank][ompthread][invoke] = ( start, stop )
+
+                        if ediff < emeta[0]:
+                            emeta[0] = ediff
+                        if ediff > emeta[1]:
+                            emeta[1] = ediff
+                        emeta[2] += 1
+                        eresol = float(resolution)
+                        if eresol > emeta[3]:
+                            emeta[3] = eresol
+
+        except Exception as e:
+            pass
+            # TODO log error message
+        finally:
+            pass
+
+        self.add_forward(data=(etimes, emeta))
+
+
+class FortranTimingCombiner(App):
+
+    _name_ = "timingcombine"
+    _version_ = "0.1.0"
+
+    def __init__(self, mgr):
+
+        self.add_argument("data", help="timing data")
+        self.add_argument("-o", "--output", type=str, help="output path.")
+
+        self.register_forward("data", help="timing model data")
 
     def perform(self, args):
 
         pass
-#        if os.path.exists(data_etime_path) and len(glob.glob( '%s/*'%data_etime_path )) > 0 and Config.model['reuse_rawdata']:
+        #import pdb; pdb.set_trace()
+
+#        else:
+#            try:
+#                etime_sections = [ Config.path['etime'], 'summary']
 #
-#            kgutils.logger.info('Generating model file: %s/%s'%(Config.path['outdir'], Config.modelfile))
+#                self.addmodel(Config.path['etime'], etime_sections)
 #
-#            # collect data
-#            etimes = {} # mpirank:omptid:invoke=[(fileid, linenum, numvisits), ... ]
-#            etimemin = 1.0E100
-#            etimemax = 0.0
-#            netimes = 0
-#            etimeresol = 0.0
-#            nexcluded_under = 0
-#            nexcluded_over = 0
+#                # elapsedtime section
+#                etime = []
+#                #fd.write('; <MPI rank> < OpenMP Thread> <invocation order> =  <file number>:<line number><num of invocations> ...\n')
 #
-#            mpipaths = []
-#            for item in os.listdir(data_etime_path):
-#                try:
-#                    mpirank, ompthread = item.split('.')
-#                    if mpirank.isdigit() and ompthread.isdigit():
-#                        mpipaths.append((data_etime_path, mpirank, ompthread))
-#                except:
-#                    pass
+#                for ranknum, threadnums in etimes.items():
+#                    for threadnum, invokenums in threadnums.items():
+#                        for invokenum, evalues  in invokenums.items():
+#                            etime.append( ( '%s %s %s'%(ranknum, threadnum, invokenum), ', '.join(evalues) ) )
+#                self.addsection(Config.path['etime'], Config.path['etime'], etime)
 #
-#            #nprocs = min( len(mpipaths), multiprocessing.cpu_count()*1)
-#            nprocs = 1
+#                summary = []
+#                summary.append( ('minimum_elapsedtime', str(etimemin)) )
+#                summary.append( ('maximum_elapsedtime', str(etimemax)) )
+#                summary.append( ('number_elapsedtimes', str(netimes)) )
+#                summary.append( ('resolution_elapsedtime', str(etimeresol)) )
+#                self.addsection(Config.path['etime'], 'summary', summary )
+#            except Exception as e:
+#                kgutils.logger.error(str(e))
 #
-#            if nprocs == 0:
-#                kgutils.logger.warn('No elapsedtime data files are found.')
-#            else:
-#                workload = [ chunk for chunk in chunks(mpipaths, int(math.ceil(len(mpipaths)/nprocs))) ]
-#                inqs = []
-#                outqs = []
-#                for _ in range(nprocs):
-#                    inqs.append(multiprocessing.Queue())
-#                    outqs.append(multiprocessing.Queue())
 #
-#                procs = []
-#                for idx in range(nprocs):
-#                    proc = multiprocessing.Process(target=readdatafiles, args=(inqs[idx], outqs[idx]))
-#                    procs.append(proc)
-#                    proc.start()
+#    out, err, retcode = kgutils.run_shcmd('make recover', cwd=etime_realpath)
 #
-#                for inq, chunk in zip(inqs,workload):
-#                    inq.put(chunk)
+#    if Config.state_switch['clean']:
+#        kgutils.run_shcmd(Config.state_switch['clean'])
+
+########################
 #
-#                for outq in outqs:
-#                    etime, emeta = outq.get()
-#                    update(etimes, etime)
-#                    etimemin = min(etimemin, emeta[0])
-#                    etimemax = max(etimemax, emeta[1])
-#                    netimes += emeta[2]
-#                    etimeresol = max(etimeresol, emeta[3])
-#                    nexcluded_under += emeta[4]
-#                    nexcluded_over += emeta[5]
-#                for idx in range(nprocs):
-#                    procs[idx].join()
+#        #nprocs = min( len(mpipaths), multiprocessing.cpu_count()*1)
+#        nprocs = 1
 #
-#                kgutils.logger.info('# of excluded samples: under limit = %d, over limit = %d'%(nexcluded_under, nexcluded_over))
+#        if nprocs == 0:
+#            kgutils.logger.warn('No elapsedtime data files are found.')
+#        else:
+#            workload = [ chunk for chunk in chunks(mpipaths, int(math.ceil(len(mpipaths)/nprocs))) ]
+#            inqs = []
+#            outqs = []
+#            for _ in range(nprocs):
+#                inqs.append(multiprocessing.Queue())
+#                outqs.append(multiprocessing.Queue())
 #
-#            #import pdb; pdb.set_trace()
+#            procs = []
+#            for idx in range(nprocs):
+#                proc = multiprocessing.Process(target=readdatafiles, args=(inqs[idx], outqs[idx]))
+#                procs.append(proc)
+#                proc.start()
+#
+#            for inq, chunk in zip(inqs,workload):
+#                inq.put(chunk)
+#
+#            for outq in outqs:
+#                etime, emeta = outq.get()
+#                update(etimes, etime)
+#                etimemin = min(etimemin, emeta[0])
+#                etimemax = max(etimemax, emeta[1])
+#                netimes += emeta[2]
+#                etimeresol = max(etimeresol, emeta[3])
+#                nexcluded_under += emeta[4]
+#                nexcluded_over += emeta[5]
+#            for idx in range(nprocs):
+#                procs[idx].join()
+#
 #
 #            if len(etimes) == 0:
 #                if not _DEBUG:
-#                    shutil.rmtree(data_etime_path)
+#                    shutil.rmtree(datadir)
 #                kgutils.logger.warn('Elapsedtime data is not collected.')
 #            else:
 #                try:
@@ -107,9 +263,10 @@ class FortranTimingModel(App):
 #
 #                except Exception as e:
 #                    kgutils.logger.error(str(e))
+#
 #        else:
 #            if not _DEBUG:
-#                shutil.rmtree(data_etime_path)
+#                shutil.rmtree(datadir)
 #            kgutils.logger.info('failed to generate elapsedtime information')
 #
 #        out, err, retcode = kgutils.run_shcmd('make recover', cwd=etime_realpath)
@@ -118,6 +275,26 @@ class FortranTimingModel(App):
 #            kgutils.run_shcmd(Config.state_switch['clean'])
 #    else: # check if coverage should be invoked
 #        kgutils.logger.info('Reusing Elapsedtime file: %s/%s'%(Config.path['outdir'], Config.modelfile))
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #
 #    # check if elapsedtime data exists in model file
 #    if not os.path.exists('%s/%s'%(Config.path['outdir'], Config.modelfile)):

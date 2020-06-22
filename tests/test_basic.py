@@ -113,10 +113,11 @@ def test_model(capsys):
     buildcmd = "cd %s; make build" % workdir
     runcmd = "cd %s; make run" % workdir
 
-    cmd = "buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
+    cmd = "--logging debug --"
+    cmd += " buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
             buildcmd, cleancmd, jsonfile, workdir)
     cmd += " -- resolve --compile-info '@data' '%s'" % callsitefile
-    cmd += " -- runscan '@analysis' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s'" % (
+    cmd += " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s'" % (
                 outdir, cleancmd, buildcmd, runcmd)
     ret, fwds = prj.run_command(cmd)
 

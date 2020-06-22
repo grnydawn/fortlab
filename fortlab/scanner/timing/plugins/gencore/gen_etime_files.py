@@ -21,8 +21,8 @@ class Gen_ElapsedTime_File(Kgen_Plugin):
         self.frame_msg = msg
 
         # when begin process
-        self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.STATE, GENERATION_STAGE.NODE_CREATED, \
-            getinfo('topblock_stmt'), None, self.save_maps)
+        #self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.STATE, GENERATION_STAGE.NODE_CREATED, \
+        #    getinfo('topblock_stmt'), None, self.save_maps)
 
         self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.STATE, GENERATION_STAGE.NODE_CREATED, \
             getinfo('parentblock_stmt'), None, self.save_etime)
@@ -31,23 +31,23 @@ class Gen_ElapsedTime_File(Kgen_Plugin):
     # printing paths
     ##################################
 
-    def save_maps(self, node):
-
-        # generate metadata.json for coverage
-        if os.path.exists('%s/__data__/modeltypes'%getinfo('model_path')):
-            json_data = None
-            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'r') as cm:
-                json_data = json.load(cm)
-                if u'"%s"'%getinfo('etime_typeid') not in json_data[u'datamap']:
-                    json_data[u'datamap'][u'"%s"'%getinfo('etime_typeid')] = u'"%s"'%getinfo('etime_typename')
-
-            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'w') as cm:
-                cm.write(json.dumps(json_data))
-        else:
-            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'w') as fm:
-                fm.write(u'{"datatype": "model", "datamap": { "%s": "%s" }}\n'%\
-                    (getinfo('etime_typeid'), getinfo('etime_typename')))
-
+#    def save_maps(self, node):
+#
+#        # generate metadata.json for coverage
+#        if os.path.exists('%s/__data__/modeltypes'%getinfo('model_path')):
+#            json_data = None
+#            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'r') as cm:
+#                json_data = json.load(cm)
+#                if u'"%s"'%getinfo('etime_typeid') not in json_data[u'datamap']:
+#                    json_data[u'datamap'][u'"%s"'%getinfo('etime_typeid')] = u'"%s"'%getinfo('etime_typename')
+#
+#            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'w') as cm:
+#                cm.write(json.dumps(json_data))
+#        else:
+#            with open('%s/__data__/modeltypes'%getinfo('model_path'), 'w') as fm:
+#                fm.write(u'{"datatype": "model", "datamap": { "%s": "%s" }}\n'%\
+#                    (getinfo('etime_typeid'), getinfo('etime_typename')))
+#
 
     def has_mpifh(self, stmt):
         retval = False
