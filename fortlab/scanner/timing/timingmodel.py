@@ -163,8 +163,7 @@ class FortranTimingCombiner(App):
 
     def perform(self, args):
 
-        pass
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
 
 #        else:
 #            try:

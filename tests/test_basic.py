@@ -107,18 +107,19 @@ def test_model(capsys):
 
     workdir = os.path.join(here, "src")
     outdir = os.path.join(here, "output")
+    outfile = os.path.join(outdir, "model.json")
     callsitefile = os.path.join(workdir, "update_mod.F90")
     jsonfile = os.path.join(workdir, "test.json")
     cleancmd = "cd %s; make clean" % workdir 
     buildcmd = "cd %s; make build" % workdir
     runcmd = "cd %s; make run" % workdir
 
-    cmd = "--logging debug --"
-    cmd += " buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
+    cmd = "--logging debug"
+    cmd += " -- buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
             buildcmd, cleancmd, jsonfile, workdir)
     cmd += " -- resolve --compile-info '@data' '%s'" % callsitefile
-    cmd += " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s'" % (
-                outdir, cleancmd, buildcmd, runcmd)
+    cmd += " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s' --output '%s'" % (
+                outdir, cleancmd, buildcmd, runcmd, outfile)
     ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
@@ -127,6 +128,6 @@ def test_model(capsys):
     #ret, fwds = prj.run_command(cmd)
     #assert ret == 0
 
-    assert os.path.isfile(os.path.join(outdir, "model.ini")) is True
+    assert os.path.isfile(outfile) is True
 
     shutil.rmtree(outdir)

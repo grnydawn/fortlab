@@ -62,6 +62,7 @@ class MicroappRunScanner(App):
         self.add_argument("--buildcmd", metavar="build command", help="Software build command")
         self.add_argument("--runcmd", metavar="run command", help="Software run command")
         self.add_argument("--outdir", help="output directory")
+        self.add_argument("-o", "--output", help="json output file")
         self.add_argument("-s", "--add-scan", action="append", help="add scanning method")
         self.add_argument("--no-cache", action="store_true",
                             help="force to collect timing data")
@@ -129,12 +130,16 @@ class MicroappRunScanner(App):
         if args.add_scan is None or "timing" in scans:
             ret, fwds = self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
 
-        with open('%s/__data__/modeltypes' % modeldir, 'w') as fm:
-            json.dump(mtypes, fm)
+        with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
+            json.dump(mtypes, f)
 
         ret, fwds = self.combine_model(modeldir)
 
-        self.add_forward(**fwds)
+        if args.output:
+            with open(args.output["_"], "w") as f:
+                json.dump(fwds["model"], f)
+
+        self.add_forward(model=fwds['model'])
 
     def combine_model(self, modeldir):
 
@@ -198,7 +203,7 @@ class MicroappModelCombiner(App):
         self.add_argument("modeldir", metavar="raw datadir", help="Raw model data directory")
         self.add_argument("-o", "--output", type=str, help="output path.")
 
-        #self.register_forward("data", help="json object")
+        self.register_forward("model", help="model object")
 
 
     def perform(self, args):
@@ -206,6 +211,8 @@ class MicroappModelCombiner(App):
         modeldir = args.modeldir["_"]
         datadir = os.path.join(modeldir, "__data__")
         metafile = os.path.join(datadir, "modeltypes")
+
+        model = appdict()
 
         with open(metafile, 'r') as fm:
             mtypes = json.load(fm)
@@ -219,9 +226,11 @@ class MicroappModelCombiner(App):
                     #ret, fwds = self.manager.run_command(cmd)
                     ret, fwds = self.run_subapp(collector, [scandir])
 
-                    combiner = mtypes["combinemap"][scanid]
+                    model[scanname] = fwds['data']
+                    #combiner = mtypes["combinemap"][scanid]
                     #cmd = combiner + " @data"
                     #ret, fwds = self.manager.run_command(cmd,
-                    ret, fwds = self.run_subapp(combiner, ["@data"],
-                                    forward={"data": fwds["data"]})
+                    #ret, fwds = self.run_subapp(combiner, ["@data"],
+                    #                forward={"data": fwds["data"]})
 
+        self.add_forward(model=model)
