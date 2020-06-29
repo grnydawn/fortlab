@@ -139,10 +139,16 @@ class FortranCompilerOption(App):
 
         if args.savejson:
             jsonfile = args.savejson["_"]
+            dirname = os.path.dirname(jsonfile)
+
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+
             #cmd = ["dict2json", "@flags", "-o", jsonfile]
             opts = ["@flags", "-o", jsonfile]
             #self.manager.run_command(cmd, forward={"flags": flags})
-            self.run_subapp("dict2json", opts, forward={"flags": flags})
+            ret, fwds = self.run_subapp("dict2json", opts, forward={"flags": flags})
+            assert ret == 0, "dict2json returned non-zero code."
 
         os.chdir(orgcwd)
 

@@ -15,8 +15,8 @@ class MicroappBuildScanner(App):
 
         self.add_argument("buildcmd", metavar="build command", help="Software build command")
         self.add_argument("--cleancmd", type=str, help="Software clean command.")
-        self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--outdir", type=str, help="output directory")
+        self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
@@ -47,6 +47,7 @@ class MicroappBuildScanner(App):
             opts += ["--check"]
 
         ret, fwds = self.run_subapp("compileroption", opts)
+        assert ret == 0, "compileroption returned non-zero code."
 
         self.add_forward(data=fwds["data"])
 
@@ -128,12 +129,13 @@ class MicroappRunScanner(App):
         scans = [s["_"] for s in args.add_scan]
 
         if args.add_scan is None or "timing" in scans:
-            ret, fwds = self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
+            self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
 
         with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
             json.dump(mtypes, f)
 
         ret, fwds = self.combine_model(modeldir)
+        assert ret == 0, "combine_model returned non-zero code."
 
         if args.output:
             with open(args.output["_"], "w") as f:
@@ -185,12 +187,17 @@ class MicroappRunScanner(App):
 
         #ret, fwds = self.manager.run_command(cmd, forward={"analysis": config})
         ret, fwds = self.run_subapp("timinggen", opts, forward={"analysis": config})
+        assert ret == 0, "timinggen returned non-zero code."
 
+        etimedir = fwds["etimedir"]
         #cmd = "shell 'cd %s; make; make recover' --useenv" % fwds["etimedir"]
-        opts = ["'cd %s; make; make recover'" % fwds["etimedir"], "--useenv"]
+        opts = ["'make'" , "--useenv", "--workdir", etimedir]
+        ret, fwds = self.run_subapp("shell", opts)
+        assert ret == 0, "shell make returned non-zero code: %s" % fwds['stderr']
 
-        return self.run_subapp("shell", opts)
-
+        opts = ["make recover" , "--useenv", "--workdir", etimedir]
+        ret, fwds = self.run_subapp("shell", opts)
+        assert ret == 0, "shell 'make recover' returned non-zero code: %s" % fwds['stderr']
 
         
 class MicroappModelCombiner(App):
@@ -225,6 +232,9 @@ class MicroappModelCombiner(App):
                     #cmd = collector + " " + scandir
                     #ret, fwds = self.manager.run_command(cmd)
                     ret, fwds = self.run_subapp(collector, [scandir])
+                    assert ret == 0, "%s returned non-zero code." % collector
+                    assert "data" in fwds, "No data is defined in %s." % collector
+                    assert fwds["data"], "No %s data is collected." % collector
 
                     model[scanname] = fwds['data']
                     #combiner = mtypes["combinemap"][scanid]

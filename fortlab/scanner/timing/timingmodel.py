@@ -67,6 +67,7 @@ class FortranTimingCollector(App):
 
         #ret, fwds = self.manager.run_command(cmd, forward=fwds)
         ret, fwds = self.run_subgroup(group_args=group_opts, app_args=app_args, forward=fwds)
+        assert ret == 0, "_tcollect returned non-zero code."
 
         unregister_appclass(_TCollect)
 
