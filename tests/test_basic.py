@@ -101,7 +101,47 @@ def test_print(capsys):
 #    shutil.rmtree(outdir)
 
 
-def test_model(capsys):
+#def test_model(capsys):
+#
+#    prj = Fortlab()
+#
+#    workdir = os.path.join(here, "src")
+#    outdir = os.path.join(here, "output")
+#    outfile = os.path.join(outdir, "model.json")
+#    callsitefile = os.path.join(workdir, "update_mod.F90")
+#    jsonfile = os.path.join(outdir, "compile.json")
+#    cleancmd = "cd %s; make clean" % workdir 
+#    buildcmd = "cd %s; make build" % workdir
+#    runcmd = "cd %s; make run" % workdir
+#
+#    #if os.path.exists(outdir):
+#    #    os.makedirs(outdir)
+#
+#    cmd = "--logging debug"
+#    cmd += " -- buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
+#            buildcmd, cleancmd, jsonfile, workdir)
+#    cmd += " -- resolve --compile-info '@data' '%s'" % callsitefile
+#    cmd += " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s' --output '%s'" % (
+#                outdir, cleancmd, buildcmd, runcmd, outfile)
+#    ret, fwds = prj.run_command(cmd)
+#
+#    assert ret == 0
+#
+#    ret, fwds = prj.run_command("shell 'make clean' --useenv --workdir '%s'" % workdir)
+#
+#    assert ret == 0
+#
+#    #cmd = "shell 'cd %s; make; make recover; cd %s; make clean' --useenv" % (fwds["etimedir"], workdir)
+#    #ret, fwds = prj.run_command(cmd)
+#    #assert ret == 0
+#
+#    assert os.path.isfile(outfile) is True
+#
+#    import pdb; pdb.set_trace()
+#    shutil.rmtree(outdir)
+
+
+def test_state(capsys):
 
     prj = Fortlab()
 
