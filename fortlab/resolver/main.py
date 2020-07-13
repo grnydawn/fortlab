@@ -32,6 +32,10 @@ class FortranNameResolver(App):
         # database
         self.config = {}
 
+        # KGEN version
+        self.config['kgen'] = OrderedDict()
+        self.config['kgen']['version'] = [ 0, 9, '0' ]
+
         # source file parameters
         self.config["source"] = OrderedDict()
         self.config['source'] = OrderedDict()
@@ -131,6 +135,16 @@ class FortranNameResolver(App):
 #        self.config['model']['types']['papi']['dynamic'] = None
 #        self.config['model']['types']['papi']['enabled'] = False
 
+        # make kernel parameters
+        self.config['kernel_option'] = OrderedDict()
+        self.config['kernel_option']['FC'] =  ''
+        self.config['kernel_option']['FC_FLAGS'] = ''
+        self.config['kernel_option']['compiler'] = OrderedDict()
+        self.config['kernel_option']['compiler']['add'] = []
+        self.config['kernel_option']['compiler']['remove'] = []
+        self.config['kernel_option']['linker'] = OrderedDict()
+        self.config['kernel_option']['linker']['add'] = []
+
         # make prerun parameters
         self.config['prerun'] = OrderedDict()
         self.config['prerun']['kernel_build'] = ''
@@ -157,6 +171,7 @@ class FortranNameResolver(App):
         self.config['exclude'] = OrderedDict()
 
         # make rebuild parameters
+        self.config['cwd'] = os.getcwd()
         self.config['path'] = OrderedDict()
 
         
@@ -172,6 +187,39 @@ class FortranNameResolver(App):
 
         # program units
         self.config['program_units'] = OrderedDict()
+
+        # debugging parameters
+        self.config['debug'] = OrderedDict()
+        self.config['debug']['printvar'] = []
+
+        # invocation parameters
+        self.config['invocation'] = OrderedDict()
+        self.config['invocation']['triples'] = []
+
+        # data parameters
+        self.config['data'] = OrderedDict()
+        self.config['data']['condition'] = []
+        self.config['data']['maxnuminvokes'] = None
+
+        # add mpi frame code in kernel driver
+        self.config['add_mpi_frame'] = OrderedDict()
+        self.config['add_mpi_frame']['enabled'] = False
+        self.config['add_mpi_frame']['np'] = '2'
+        self.config['add_mpi_frame']['mpifc'] = 'mpif90'
+        self.config['add_mpi_frame']['mpirun'] = 'mpirun'
+
+        # add mpi frame code in kernel driver
+        self.config['add_cache_pollution'] = OrderedDict()
+        self.config['add_cache_pollution']['enabled'] = False
+        self.config['add_cache_pollution']['size'] = 0
+
+        self.config['plugindb'] = OrderedDict()
+
+        # verification parameters
+        self.config['verify'] = OrderedDict()
+        self.config['verify']['tolerance'] = '1.D-14'
+        self.config['verify']['minval'] = '1.D-14'
+        self.config['verify']['verboselevel'] = '1'
 
 
     def read_compile_info(self, cinfo, config):

@@ -163,6 +163,7 @@ def test_state(capsys):
     cmd += " -- resolve --compile-info '@data' '%s'" % callsitefile
     cmd += " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s' --output '%s'" % (
                 outdir, cleancmd, buildcmd, runcmd, outfile)
+    cmd += " -- kernelgen '@analysis' --outdir '%s'" % outdir
     ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
@@ -177,5 +178,23 @@ def test_state(capsys):
 
     assert os.path.isfile(outfile) is True
 
-    import pdb; pdb.set_trace()
+#    captured = capsys.readouterr()
+#    assert captured.err == ""
+#    assert "Compiled" in captured.out
+#    assert os.path.isfile(jsonfile)
+
+
+    assert os.path.isfile(os.path.join(outdir, "kernel", "calc.0.0.1"))
+
+    ret, fwds = prj.run_command("shell 'make' --workdir '%s'" % os.path.join(outdir, "kernel"))
+
+    assert ret == 0
+    assert not fwds["stderr"]
+
+    ret, fwds = prj.run_command("shell './kernel.exe' --workdir '%s'" % os.path.join(outdir, "kernel"))
+
+    assert ret == 0
+    assert not fwds["stderr"]
+    assert b"calc: PASSED verification" in fwds["stdout"]
+
     shutil.rmtree(outdir)

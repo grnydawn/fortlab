@@ -304,7 +304,7 @@ def getinfo(name, plugin=None):
     if name in plugin_default_infolist: 
         if name=='kernel_name': return plugin_config["current"]["kernel"]['name']
         elif name=='kgen_version': return '%d.%d.%s'%tuple(plugin_config["current"]["kgen"]['version'])
-        elif name=='kernel_path': return os.path.realpath('%s/%s'%(plugin_config["current"]["path"]['outdir'], plugin_config["current"]["path"]['kernel']))
+        elif name=='kernel_path': return os.path.realpath(plugin_config["current"]["path"]['kernel_output'])
         elif name=='kernel_driver_name': return plugin_config["current"]["kernel_driver"]['name']
         elif name=='kernel_driver_callsite_args': return plugin_config["current"]["kernel_driver"]['callsite_args']
         elif name=='is_openmp_app': return plugin_config["current"]["openmp"]['enabled']
