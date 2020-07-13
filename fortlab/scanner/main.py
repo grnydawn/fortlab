@@ -165,7 +165,7 @@ class MicroappRunScanner(App):
 
         etime_plugindir = os.path.join(here, "timing", "plugins", "gencore")
 
-        init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, config)
+        init_plugins([KERNEL_ID_0], (('etime.gencore', etime_plugindir),), config)
 
         plugin_config["current"].update(self.config)
 

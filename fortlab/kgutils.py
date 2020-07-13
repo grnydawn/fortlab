@@ -165,6 +165,23 @@ class ProgramException(KGException):
 # Functions
 ##############################################
 
+def tounicode(text, enc=None):
+
+    if enc is None:
+        if sys.stdout.encoding:
+            enc = sys.stdout.encoding
+
+        else:
+            enc = "utf-8"
+
+    try:
+        text = text.decode(enc)
+
+    except:
+        text = str(text)
+
+    return text
+
 def kgenexit(msg):
     print(msg)
     sys.exit(-1)

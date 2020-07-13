@@ -444,7 +444,7 @@ def init_plugins(kernel_ids, plugins, config):
         Kgen_Plugin.plugin_common[kernel_id] = OrderedDict()
 
         #for plugin_name, plugin_path in Config.plugin['priority'].items():
-        for plugin_name, plugin_path in plugins.items():
+        for plugin_name, plugin_path in plugins:
             plugin_common[kernel_id][plugin_name] = OrderedDict()
             plugin_common[kernel_id][plugin_name]['blocks'] =  OrderedDict()
             plugin_files = [x[:-3] for x in os.listdir(plugin_path) if x.endswith(".py")]
