@@ -214,7 +214,7 @@ def process_spec_stmts(stmt):
 
         def is_uname(item, unames):
             import re
-            iname = re.split('\(|\*|=', item)[0].strip()
+            iname = re.split(r'\(|\*|=', item)[0].strip()
             if iname in unames: return True
             else: return False
 

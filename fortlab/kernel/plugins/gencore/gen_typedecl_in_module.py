@@ -381,7 +381,7 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
             import re
             entity_decls = []
             for decl in decls:
-                ename = re.split('\(|\*|=', decl)[0].strip()
+                ename = re.split(r'\(|\*|=', decl)[0].strip()
                 if ename in names:
                     entity_decls.append(prefix+decl)
             return entity_decls
