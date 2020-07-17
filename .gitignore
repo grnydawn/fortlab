@@ -134,6 +134,6 @@ dmypy.json
 kgen.log
 model
 model.ini
-kernel
-state
-etime
+#kernel
+#state
+#etime
