@@ -69,6 +69,7 @@ class MicroappRunScanner(App):
                             help="force to collect timing data")
 
         self.register_forward("model", help="model data file")
+        self.register_forward("analysis", help="tree object")
 
         # model parameters
         self.config = appdict()
@@ -142,6 +143,7 @@ class MicroappRunScanner(App):
                 json.dump(fwds["model"], f)
 
         self.add_forward(model=fwds['model'])
+        self.add_forward(analysis=args.analysis['_'])
 
     def combine_model(self, modeldir):
 
@@ -163,7 +165,7 @@ class MicroappRunScanner(App):
 
         etime_plugindir = os.path.join(here, "timing", "plugins", "gencore")
 
-        init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, config)
+        init_plugins([KERNEL_ID_0], (('etime.gencore', etime_plugindir),), config)
 
         plugin_config["current"].update(self.config)
 

@@ -33,7 +33,7 @@ class KGGenType(object):
 
     @classmethod
     def has_state_in(cls, geninfo):
-        return cls.STATE_I in geninfo
+        return cls.STATE_IN in geninfo
 
     @classmethod
     def has_state_out(cls, geninfo):
