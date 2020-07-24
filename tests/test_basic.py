@@ -157,7 +157,7 @@ def test_state(capsys):
     #if os.path.exists(outdir):
     #    os.makedirs(outdir)
 
-    cmd = "--logging debug"
+    cmd = "--shell 'module load gcc' --logging debug"
     cmd += " -- buildscan '%s' --cleancmd '%s' --savejson '%s' --verbose --workdir '%s'" % (
             buildcmd, cleancmd, jsonfile, workdir)
     cmd += " -- resolve --compile-info '@data' '%s'" % callsitefile
