@@ -96,7 +96,7 @@ class Gen_Write_In_Module(Kgen_Plugin):
                 attrs = {'type_spec': 'INTEGER', 'entity_decls': ['kgen_openmp_issave']}
                 part_append_gensnode(pnode, DECL_PART, typedecl_statements.Integer, attrs=attrs)
 
-            attrs = {'items': [ ( 'state', ('kgen_mpirank', 'kgen_openmp_issave') ) ]}
+            attrs = {'items': [ ( 'kgen_state', ('kgen_mpirank', 'kgen_openmp_issave') ) ]}
             part_append_gensnode(pnode, DECL_PART, statements.Common, attrs=attrs)
 
             attrs = {'type_spec': 'INTEGER', 'entity_decls': ['kgen_write_unit']}
@@ -270,7 +270,7 @@ class Gen_Write_In_Module(Kgen_Plugin):
             attrs = {'type_spec': 'LOGICAL', 'entity_decls': ['kgen_evalstage', 'kgen_warmupstage', 'kgen_mainstage']}
             part_append_genknode(pnode, DECL_PART, typedecl_statements.Logical, attrs=attrs)
 
-            attrs = {'items': [ ( 'state', ('kgen_mpirank', 'kgen_openmptid', 'kgen_kernelinvoke', 'kgen_evalstage', 'kgen_warmupstage', 'kgen_mainstage') ) ]}
+            attrs = {'items': [ ( 'kgen_state', ('kgen_mpirank', 'kgen_openmptid', 'kgen_kernelinvoke', 'kgen_evalstage', 'kgen_warmupstage', 'kgen_mainstage') ) ]}
             part_append_genknode(pnode, DECL_PART, statements.Common, attrs=attrs)
             # end if hasattr
 
