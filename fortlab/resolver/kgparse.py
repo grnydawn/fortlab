@@ -114,13 +114,16 @@ class ResState(object):
         self.uname = self.unamelist[-1]
         if len(self.res_stmts)>0 and reset_uname:
             newlist = []
-            for (resuname, req) in self.res_stmts[-1].geninfo.values()[0]:
+            values = list(self.res_stmts[-1].geninfo.values())
+            #for (resuname, req) in self.res_stmts[-1].geninfo.values()[0]:
+            for (resuname, req) in values[0]:
                 if resuname==newname:
                     newlist.append((self.uname, req))
                 else:
                     newlist.append((resuname, req))
                     pass
-            self.res_stmts[-1].geninfo.values()[0] = newlist
+            #self.res_stmts[-1].geninfo.values()[0] = newlist
+            values[0] = newlist
 
 class SrcFile(object):
     def handle_include(self, lines):
@@ -316,7 +319,7 @@ class SrcFile(object):
                     if not isinstance(s, Comment): return s
 
         def get_names(node, bag, depth):
-            from Fortran2003 import Name
+            from fortlab.resolver.Fortran2003 import Name
             if isinstance(node, Name) and not node.string in bag:
                 bag.append(node.string)
            

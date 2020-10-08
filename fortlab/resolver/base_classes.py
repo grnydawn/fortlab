@@ -816,7 +816,7 @@ class Statement(object):
                     self.set_parent(item, bag, depth+1)
 
     def expr_by_name(self, name, node=None):
-        import Fortran2003
+        from fortlab.resolver import Fortran2003
 
         if not name:
             raise ProgramException("Callsite name is not found. Please check if callsite is specified correctly.")

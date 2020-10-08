@@ -955,7 +955,7 @@ class Access(Statement):
 
     def analyze(self):
         # start of KGEN addition
-        from fortlab.resolver.block_statements import TypeDecl
+        from fortlab.resolver.block_statements import TypeDecl, Module
         if not hasattr(self.parent, 'spec_stmts'):
             self.parent.spec_stmts = []
         self.parent.spec_stmts.append(self)
@@ -969,7 +969,8 @@ class Access(Statement):
         else:
             if '' not in l:
                 l.append('')
-            if not isinstance(self.parent, classes.Module):
+            #if not isinstance(self.parent, classes.Module): # KGEN deletion
+            if not isinstance(self.parent, Module): # KGEN addition
                 if not isinstance(self.parent, TypeDecl) or self.is_public: # KGEN addition
                     parentclsname = self.parent.__class__.__name__
                     message = 'C548 violation: %s statement only allowed in the'\

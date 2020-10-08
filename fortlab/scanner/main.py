@@ -18,12 +18,19 @@ class MicroappBuildScanner(App):
         self.add_argument("--outdir", type=str, help="output directory")
         self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
+        self.add_argument("--reuse", type=str, help="reuse existing file(s)")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
 
         self.register_forward("data", help="json object")
 
     def perform(self, args):
+
+        if args.reuse["_"] and os.path.isfile(args.reuse["_"]):
+            with open(args.reuse["_"]) as f:
+                strace_data = json.load(f)
+            self.add_forward(data=strace_data)
+            return
 
         #cmd = ["compileroption", args.buildcmd["_"]]
         opts = [args.buildcmd["_"]]

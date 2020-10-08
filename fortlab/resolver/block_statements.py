@@ -597,11 +597,11 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
                     f2003_search_unknowns(_stmt, _stmt.f2003)
                 for unk, req in _stmt.unknowns.iteritems():
                     if req.state != ResState.RESOLVED:
-                        _stmt.resolve(req) 
+                        _stmt.resolve(req, config) 
 
         # defer to super
         if request.state != ResState.RESOLVED:
-            super(Interface, self).resolve(request)
+            super(Interface, self).resolve(request, config)
 
     # end of KGEN
 
