@@ -73,19 +73,29 @@ class FortranTimingCollector(App):
 
         for grp, pathouts in fwds.items():
             for pathout in pathouts:
-                etime, emeta = pathout["data"]
+                for etime, emeta in pathout["data"]: # using group command
+                #etime, emeta = pathout["data"]
 
-                _update(etimes, etime)
+                    _update(etimes, etime)
 
-                etimemin = min(etimemin, emeta[0])
-                etimemax = max(etimemax, emeta[1])
-                netimes += emeta[2]
-                etimeresol = max(etimeresol, emeta[3])
-                nexcluded_under += emeta[4]
-                nexcluded_over += emeta[5]
+                    etimemin = min(etimemin, emeta[0])
+                    etimemax = max(etimemax, emeta[1])
+                    netimes += emeta[2]
+                    etimeresol = max(etimeresol, emeta[3])
+                    nexcluded_under += emeta[4]
+                    nexcluded_over += emeta[5]
 
         if len(etimes) == 0:
             shutil.rmtree(datadir)
+
+        etimes["_summary_"] = {
+                "elapsedtime_min": etimemin,
+                "elapsedtime_max": etimemax,
+                "number_eitmes": netimes,
+                "elapsedtime_res": etimeresol,
+                "number_underflow": nexcluded_under,
+                "number_overflow": nexcluded_over
+            }
 
         self.add_forward(data=etimes)
 

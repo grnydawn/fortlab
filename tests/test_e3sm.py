@@ -64,18 +64,19 @@ def test_tulip(capsys):
 
     #cmd = " -- resolve --compile-info '@data' '%s'" % callsitefile + ":" + callsitepath
     rescmd = (" -- resolve --mpi header='%s/include/mpif.h' --openmp enable"
-             " --compile-info '%s' --save '%s' '%s'" % (
+             " --compile-info '%s' --keep '%s' '%s'" % (
             mpidir, compjson, analysisjson, callsitefile + ":" + callsitepath))
     #ret, fwds = prj.run_command(cmd)
     #assert ret == 0
 
     cmd = rescmd + " -- runscan '@analysis' -s 'timing' --outdir '%s' --cleancmd '%s' --buildcmd '%s' --runcmd '%s' --output '%s'" % (
                 outdir, cleancmd, buildcmd, runcmd, outfile)
-    ret, fwds = prj.run_command(cmd)
+    #ret, fwds = prj.run_command(cmd)
 
-    import pdb; pdb.set_trace()
+    #import pdb; pdb.set_trace()
+    # add model config to analysis
 
-    cmd = rescmd + " -- kernelgen '@analysis' --outdir '%s'" % outdir
+    cmd = cmd + " -- kernelgen '@analysis' --model '@model' --repr-etime 'ndata=40,nbins=10'  --outdir '%s'" % outdir
     ret, fwds = prj.run_command(cmd)
 
     assert ret == 0
@@ -84,7 +85,6 @@ def test_tulip(capsys):
 
     #assert ret == 0
 
-    import pdb; pdb.set_trace()
     #cmd = "shell 'cd %s; make; make recover; cd %s; make clean' --useenv" % (fwds["etimedir"], workdir)
     #ret, fwds = prj.run_command(cmd)
     #assert ret == 0
@@ -97,7 +97,7 @@ def test_tulip(capsys):
 #    assert os.path.isfile(compjson)
 
 
-    assert os.path.isfile(os.path.join(outdir, "kernel", "calc.0.0.1"))
+    assert os.path.isfile(os.path.join(outdir, "kernel", "micro_mg_tend2_0.0.0.1"))
 
     ret, fwds = prj.run_command("shell 'make' --workdir '%s'" % os.path.join(outdir, "kernel"))
 

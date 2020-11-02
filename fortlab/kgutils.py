@@ -6,6 +6,11 @@ import logging
 import subprocess
 import locale
 
+try:
+    import configparser
+except:
+    import ConfigParser as configparser
+
 ##############################################
 # KGName
 ##############################################
@@ -338,3 +343,57 @@ ch.setFormatter(cf)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+
+
+#############################################################################
+## CONFIG
+#############################################################################
+
+class KgenConfigParser(configparser.RawConfigParser):
+    def __init__(self, *args, **kwargs):
+        configparser.RawConfigParser.__init__(self, *args, **kwargs)
+        self.optionxform = str
+
+    def _optname_colon_to_dot(self, line):
+        newline = line.strip()
+
+        if len(newline)>0:
+            if newline[0]==';': # comment
+                return line
+            elif newline[0]=='[' and newline[-1]==']': # filepath
+                return line.replace(':', INTERNAL_NAMELEVEL_SEPERATOR)
+            else: # else
+                pos = line.find('=')
+                if pos>0:
+                    return line[:pos].replace(':', INTERNAL_NAMELEVEL_SEPERATOR) + line[pos:]
+                else:
+                    raise UserException('KGEN requires an equal symbol at each option line')
+        else:
+            return line
+
+    def read(self, filenames):
+        try:
+            from io import StringIO
+
+            if isinstance(filenames, str):
+                filenames = [filenames]
+
+        except:
+            from StringIO import StringIO
+
+            if isinstance(filenames, basestring):
+                filenames = [filenames]
+
+        for filename in filenames:
+            try:
+                fp = open(filename)
+            except IOError:
+                continue
+
+            lines = []
+            for line in fp.readlines():
+                lines.append(self._optname_colon_to_dot(line))
+            fp.close()
+
+            buf = StringIO(''.join(lines))
+            self._read(buf, filename)

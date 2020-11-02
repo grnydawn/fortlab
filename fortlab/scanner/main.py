@@ -74,6 +74,8 @@ class MicroappRunScanner(App):
         self.add_argument("-s", "--add-scan", action="append", help="add scanning method")
         self.add_argument("--no-cache", action="store_true",
                             help="force to collect timing data")
+        self.add_argument("--noreuse-rawdata", dest="noreuse_rawdata", action='store_true',
+                          help="Control raw data generation for modeling.")
 
         self.register_forward("model", help="model data file")
         self.register_forward("analysis", help="tree object")
@@ -123,6 +125,9 @@ class MicroappRunScanner(App):
 
     def perform(self, args):
 
+        # generating model raw data
+        if args.noreuse_rawdata:
+            self.config['model']['reuse_rawdata'] = False if args.noreuse_rawdata else True
 
         ret, fwds = 0, {}
 

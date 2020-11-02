@@ -4,7 +4,7 @@
 # [GCC 8.4.0]
 # Embedded file name: /home/grnydawn/repos/github/fortlab/fortlab/kernel/kernelgen.py
 # Compiled at: 2020-07-13 10:26:24
-import os, io, locale
+import os, io, locale, math, random
 from collections import OrderedDict
 from microapp import App
 from fortlab.kggenfile import (
@@ -47,12 +47,99 @@ class FortranKernelGenerator(App):
     def __init__(self, mgr):
         self.add_argument("analysis", help="analysis object")
         self.add_argument("--outdir", help="output directory")
-        self.add_argument("--model", help="model file")
+        self.add_argument("--model", help="model object")
+
+        self.add_argument("--repr-etime", dest="repr_etime", action='append', type=str, help="Specifying elapsedtime representativeness feature flags")
+        self.add_argument("--repr-papi", dest="repr_papi", action='append', type=str, help="Specifying papi counter representativeness feature flags")
+        self.add_argument("--repr-code", dest="repr_code", action='append', type=str, help="Specifying code coverage representativeness feature flags")
+
         self.register_forward("kerneldir", help="kernel generation code directory")
         self.register_forward("statedir", help="state generation code directory")
 
+    def _process_repr_flags(self, opts):
+
+        if opts.repr_etime:
+            for line in opts.repr_etime:
+                line = line["_"]
+                for eopt in line.split(','):
+                    split_eopt = eopt.split('=', 1)
+                    if len(split_eopt)==1:
+                        if split_eopt[0] == 'enable':
+                            self.config['model']['types']['etime']['enabled'] = True
+                        elif split_eopt[0] == 'disable':
+                            self.config['model']['types']['etime']['enabled'] = False
+                        else:
+                            raise UserException('Unknown elapsed-time flag option: %s' % eopt)
+                    elif len(split_eopt)==2:
+
+                        self.config['model']['types']['etime']['enabled'] = True
+
+                        if split_eopt[0] in [ 'minval', 'maxval' ]:
+                            self.config['model']['types']['etime'][split_eopt[0]] = float(split_eopt[1])
+                        elif split_eopt[0] in ('nbins', 'ndata'):
+                            self.config['model']['types']['etime'][split_eopt[0]] = int(split_eopt[1])
+                        elif split_eopt[0] in ('timer', ):
+                            self.config['model']['types']['etime'][split_eopt[0]] = split_eopt[1]
+                        else:
+                            raise UserException('Unknown elapsed-time flag option: %s' % eopt)
+
+        if opts.repr_papi:
+            for line in opts.repr_papi:
+                line = line["_"]
+                for popt in line.split(','):
+                    split_popt = popt.split('=', 1)
+                    if len(split_popt)==1:
+                        if split_popt[0] == 'enable':
+                            self.config['model']['types']['papi']['enabled'] = True
+                        elif split_popt[0] == 'disable':
+                            self.config['model']['types']['papi']['enabled'] = False
+                        else:
+                            raise UserException('Unknown papi-counter flag option: %s' % popt)
+                    elif len(split_popt)==2:
+
+                        self.config['model']['types']['papi']['enabled'] = True
+
+                        if split_popt[0] in [ 'minval', 'maxval', 'header', 'static', 'dynamic', 'event' ]:
+                            self.config['model']['types']['papi'][split_popt[0]] = split_popt[1]
+                        elif split_popt[0] in ('nbins', 'ndata'):
+                            self.config['model']['types']['papi'][split_popt[0]] = int(split_popt[1])
+                        else:
+                            raise UserException('Unknown papi-counter flag option: %s' % popt)
+        if opts.repr_code:
+            for line in opts.repr_code:
+                line = line["_"]
+                for copt in line.split(','):
+                    split_copt = copt.split('=', 1)
+                    if len(split_copt)==1:
+                        if split_copt[0] == 'enable':
+                            self.config['model']['types']['code']['enabled'] = True
+                        elif split_copt[0] == 'disable':
+                            self.config['model']['types']['code']['enabled'] = False
+                        else:
+                            raise UserException('Unknown code-coverage flag option: %s' % copt)
+                    elif len(split_copt)==2:
+
+                        self.config['model']['types']['code']['enabled'] = True
+
+                        if split_copt[0] in [ 'percentage' ]:
+                            self.config['model']['types']['code'][split_copt[0]] = float(split_copt[1])
+                        elif split_copt[0] in [ 'filter' ]:
+                            self.config['model']['types']['code'][split_copt[0]] = split_copt[1].strip().split(':')
+                        elif split_copt[0] in ( 'ndata' ):
+                            self.config['model']['types']['code'][split_popt[0]] = int(split_copt[1])
+                        else:
+                            raise UserException('Unknown code-coverage flag option: %s' % copt)
+
+            # enable coverage feature at extractor
+            #if self.config['model']['types']['code']['enabled']:
+            #    self.config['plugin']['priority']['ext.coverage'] = '%s/plugins/coverage'%KGEN_EXT
+
     def perform(self, args):
         self.config = args.analysis["_"]
+
+        # process representativeness flags
+        self._process_repr_flags(args)
+
         args.outdir = args.outdir["_"] if args.outdir else os.getcwd()
         if not os.path.exists(args.outdir):
             os.makedirs(args.outdir)
@@ -75,11 +162,12 @@ class FortranKernelGenerator(App):
         timing_plugindir = os.path.join(here, "plugins", "simple_timing")
         perturb_plugindir = os.path.join(here, "plugins", "perturb")
         if args.model:
-            if not os.path.exists(args.model["_"]):
-                kgutils.UserException(
-                    "Model file, %s, does not exist." % args.model["_"]
-                )
-            self.read_model(args.model["_"], self.config)
+            try:
+                if os.path.exists(args.model["_"]):
+                    with open(args.model["_"]) as f:
+                        self.read_model(json.load(f), self.config)
+            except:
+                self.read_model(args.model["_"], self.config)
         else:
             self.config["invocation"]["triples"].append(
                 (("0", "0"), ("0", "0"), ("1", "1"))
@@ -742,22 +830,20 @@ class FortranKernelGenerator(App):
                 self.write(f, "%s" % self.config["cmd_clean"]["cmds"], t=True)
             self.write(f, "")
 
-    def read_model(self, modelfile, config):
-        cfg = configparser.ConfigParser()
-        cfg.optionxform = str
-        cfg.read(modelfile)
+    def read_model(self, modeljson, config):
+        #cfg = configparser.ConfigParser()
+        #cfg.optionxform = str
+        #cfg.read(modelfile)
+        emeta = modeljson["etime"]["_summary_"]
+        del modeljson["etime"]["_summary_"]
+        etimes = modeljson["etime"]
+
         try:
-            etimemin = float(
-                cfg.get("elapsedtime.summary", "minimum_elapsedtime").strip()
-            )
-            etimemax = float(
-                cfg.get("elapsedtime.summary", "maximum_elapsedtime").strip()
-            )
-            netimes = int(cfg.get("elapsedtime.summary", "number_elapsedtimes").strip())
+            etimemin = emeta["elapsedtime_min"]
+            etimemax = emeta["elapsedtime_max"]
+            netimes = emeta["number_eitmes"]
             etimediff = etimemax - etimemin
-            etimeres = float(
-                cfg.get("elapsedtime.summary", "resolution_elapsedtime").strip()
-            )
+            etimeres = emeta["elapsedtime_res"]
             if etimediff == 0:
                 nbins = 1
             else:
@@ -769,40 +855,44 @@ class FortranKernelGenerator(App):
                 etimebins = [{}]
                 etimecounts = [0]
             idx = 0
-            for opt in cfg.options("elapsedtime.elapsedtime"):
-                ranknum, threadnum, invokenum = tuple(num for num in opt.split())
-                start, stop = cfg.get("elapsedtime.elapsedtime", opt).split(",")
-                estart = float(start)
-                eend = float(stop)
-                etimeval = eend - estart
-                if nbins > 1:
-                    binnum = int(
-                        math.floor((etimeval - etimemin) / etimediff * (nbins - 1))
-                    )
-                else:
-                    binnum = 0
-                etimecounts[binnum] += 1
-                invokenum = int(invokenum)
-                if invokenum not in etimebins[binnum]:
-                    etimebins[binnum][invokenum] = {}
-                if ranknum not in etimebins[binnum][invokenum]:
-                    etimebins[binnum][invokenum][ranknum] = {}
-                if threadnum not in etimebins[binnum][invokenum][ranknum]:
-                    etimebins[binnum][invokenum][ranknum][threadnum] = float(etimeval)
-                else:
-                    raise Exception(
-                        "Dupulicated data: (%s, %s, %s, %s)"
-                        % (invokenum, ranknum, threadnum, etimeval)
-                    )
-                idx += 1
-                if idx % 100000 == 0:
-                    print(
-                        "Processed %d items: %s"
-                        % (
-                            idx,
-                            datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
-                        )
-                    )
+            for ranknum, d1 in etimes.items():
+                for threadnum, d2 in d1.items():
+                    for invokenum, (start, stop) in d2.items():
+
+            #for opt in cfg.options("elapsedtime.elapsedtime"):
+            #    ranknum, threadnum, invokenum = tuple(num for num in opt.split())
+            #    start, stop = cfg.get("elapsedtime.elapsedtime", opt).split(",")
+                        estart = float(start)
+                        eend = float(stop)
+                        etimeval = eend - estart
+                        if nbins > 1:
+                            binnum = int(
+                                math.floor((etimeval - etimemin) / etimediff * (nbins - 1))
+                            )
+                        else:
+                            binnum = 0
+                        etimecounts[binnum] += 1
+                        invokenum = int(invokenum)
+                        if invokenum not in etimebins[binnum]:
+                            etimebins[binnum][invokenum] = {}
+                        if ranknum not in etimebins[binnum][invokenum]:
+                            etimebins[binnum][invokenum][ranknum] = {}
+                        if threadnum not in etimebins[binnum][invokenum][ranknum]:
+                            etimebins[binnum][invokenum][ranknum][threadnum] = float(etimeval)
+                        else:
+                            raise Exception(
+                                "Dupulicated data: (%s, %s, %s, %s)"
+                                % (invokenum, ranknum, threadnum, etimeval)
+                            )
+                        idx += 1
+                        if idx % 100000 == 0:
+                            print(
+                                "Processed %d items: %s"
+                                % (
+                                    idx,
+                                    datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"),
+                                )
+                            )
 
         except Exception as e:
             raise Exception("Please check the format of elapsedtime file: %s" % str(e))
@@ -853,12 +943,12 @@ class FortranKernelGenerator(App):
             for invokenum in sorted(etimebin.keys()):
                 if len(bin_triples) >= datacollect[binnum]:
                     break
-                bininvokes = etimebin[invokenum].keys()
+                bininvokes = list(etimebin[invokenum].keys())
                 random.shuffle(bininvokes)
                 for ranknum in bininvokes:
                     if len(bin_triples) >= datacollect[binnum]:
                         break
-                    binranks = etimebin[invokenum][ranknum].keys()
+                    binranks = list(etimebin[invokenum][ranknum].keys())
                     random.shuffle(binranks)
                     for threadnum in binranks:
                         bin_triples.append((ranknum, threadnum, invokenum))
