@@ -26,6 +26,7 @@ class FortranCompilerOption(App):
         self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--outdir", type=str, help="output directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
+        self.add_argument("--backup", type=str, help="saving source files used")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
 
@@ -34,6 +35,7 @@ class FortranCompilerOption(App):
     def perform(self, args):
 
         buildcmd = args.buildcmd["_"]
+
 
         cwd = orgcwd = os.getcwd()
 
@@ -47,6 +49,14 @@ class FortranCompilerOption(App):
 
         if args.cleancmd:
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
+
+        srcbackup = args.backup["_"] if args.backup else None
+
+        if srcbackup
+            srcnum = 0
+
+            if not os.path.isdir(srcbackup):
+                os.makedirs(srcbackup)
 
         # build with strace
    
@@ -104,6 +114,7 @@ class FortranCompilerOption(App):
                                                         print("Compiled: %s by %s" % (src, exepath))
                                                         print(str(options))
 
+                                                    if srcbackup:
                                                     #if src in flags:
                                                     #    flags[src].append((exepath, incs, macros, openmp, options))
                                                     #else:
@@ -123,8 +134,8 @@ class FortranCompilerOption(App):
         finally:
             pass
 
-        if args.cleancmd:
-            cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
+        #if args.cleancmd:
+        #    cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
 
         self.add_forward(data=flags)
 #

@@ -19,6 +19,7 @@ class MicroappBuildScanner(App):
         self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
         self.add_argument("--reuse", type=str, help="reuse existing file(s)")
+        self.add_argument("--backup", type=str, help="saving source files used")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
 
@@ -53,6 +54,9 @@ class MicroappBuildScanner(App):
         if args.check:
             opts += ["--check"]
 
+        if args.backup:
+            opts += ["--backup"]
+
         ret, fwds = self.run_subapp("compileroption", opts)
         assert ret == 0, "compileroption returned non-zero code."
 
@@ -70,6 +74,7 @@ class MicroappRunScanner(App):
         self.add_argument("--buildcmd", metavar="build command", help="Software build command")
         self.add_argument("--runcmd", metavar="run command", help="Software run command")
         self.add_argument("--outdir", help="output directory")
+        self.add_argument("-w", "--wait", help="wait to complete run")
         self.add_argument("-o", "--output", help="json output file")
         self.add_argument("-s", "--add-scan", action="append", help="add scanning method")
         self.add_argument("--no-cache", action="store_true",
@@ -141,11 +146,14 @@ class MicroappRunScanner(App):
 
         scans = [s["_"] for s in args.add_scan]
 
+
         if args.add_scan is None or "timing" in scans:
             self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
 
         with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
             json.dump(mtypes, f)
+
+        # TODO: wait if needed
 
         ret, fwds = self.combine_model(modeldir)
         assert ret == 0, "combine_model returned non-zero code."

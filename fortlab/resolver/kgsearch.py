@@ -203,7 +203,7 @@ def get_name_or_defer(stmt, node, resolvers, config, defer=True, gentype=None):
         #if config.exclude.has_key('namepath') and stmt.__class__ in execution_part:
         if isinstance(config, list): import pdb; pdb.set_trace()
         if 'namepath' in config["exclude"]:
-            for pattern, actions in config["exclude"]['namepath'].iteritems():
+            for pattern, actions in config["exclude"]['namepath'].items():
                 name = node.string.lower()
                 namepath = pack_innamepath(stmt, name) 
                 #logger.debug('%s and %s are being checked for exclusion'%(pattern, namepath))
@@ -258,7 +258,7 @@ def search_Type_Declaration_Stmt(stmt, node, config, gentype=None):
 
     # collect excluded names
     if 'namepath' in config["exclude"]:
-        for pattern, actions in config["exclude"]['namepath'].iteritems():
+        for pattern, actions in config["exclude"]['namepath'].items():
             decls = []
             if isinstance(node.items[2], Fortran2003.Entity_Decl):
                 decls.append(node.items[2].items[0].string.lower())

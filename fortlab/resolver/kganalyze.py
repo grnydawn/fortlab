@@ -88,12 +88,10 @@ def update_state_info(parent, config):
                                                     if kword in subpobj.args:
                                                         argidx = subpobj.args.index(kword)
 
-                                                elif isinstance(argobj, (Name, Proc_Component_Ref)):
+                                                elif isinstance(argobj, (Name, Proc_Component_Ref,
+                                                                Add_Operand, Part_Ref)):
                                                     argidx = arglist.items.index(argobj)
-
-                                                elif isinstance(argobj, (Add_Operand, )):
-                                                    argidx = arglist.items.index(argobj)
-                                                    
+   
                                                 else:
                                                     import pdb; pdb.set_trace()
                                                     raise Exception("Not implemented to handle: %s", argobj.__class__.__name__)

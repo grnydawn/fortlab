@@ -250,6 +250,10 @@ class SrcFile(object):
             include_dirs.append(os.path.dirname(self.realpath))
 
         # fparse
+
+        #if self.realpath.endswith("ESMF_ShrTimeMod.F90"):
+        #    import pdb; pdb.set_trace()
+
         self.tree = api.parse('\n'.join(new_lines), ignore_comments=False,
                               analyze=True, isfree=isfree, isstrict=isstrict,
                               include_dirs=include_dirs, source_only=None )

@@ -653,7 +653,7 @@ class FortranNameResolver(App):
             self.config['include']['opt'] = opts.include_ini["_"]
 
         if opts.exclude_ini:
-            process_exclude_option(opts.exclude_ini["_"], self.config['exclude'])
+            self.process_exclude_option(opts.exclude_ini["_"], self.config['exclude'])
 
         # parsing macro parameters
         if opts.macro:
@@ -1080,6 +1080,28 @@ class FortranNameResolver(App):
             return []
         else:
             UserException('Not supported section name in exclusion input file: %s'%section)
+
+    def process_exclude_option(self, exclude_option, excattrs):
+
+        # collect exclude configuration information
+        Exc = KgenConfigParser(allow_no_value=True)
+        #Exc.optionxform = str
+        Exc.read(exclude_option)
+        if len(Exc.sections())>0:
+            for section in Exc.sections():
+                lsection = section.lower().strip()
+                if lsection=='common':
+                    print('ERROR: a section of "common" is discarded in INI file for exclusion. Please use "namepath" section instead')
+                    sys.exit(-1)
+
+                excattrs[lsection] = OrderedDict()
+                for option in Exc.options(section):
+                    loption = option.lower().strip()
+                    excattrs[lsection][loption] = Exc.get(section, option).strip().split('=')
+        else:
+            UserException('Can not find exclude file: %s'%exclude_option)
+
+
 
     def process_include_option(self):
 

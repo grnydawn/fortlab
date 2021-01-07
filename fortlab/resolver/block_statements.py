@@ -213,6 +213,7 @@ class BeginSource(BeginStatement):
 
     match = staticmethod(lambda s: True)
     end_stmt_cls = EndSource
+
     a = AttributeHolder(module = {},
                         external_subprogram = {},
                         blockdata = {},
@@ -595,7 +596,7 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
             for _stmt, _depth in walk(request.res_stmt, -1):
                 if not hasattr(_stmt, 'unknowns'):
                     f2003_search_unknowns(_stmt, _stmt.f2003)
-                for unk, req in _stmt.unknowns.iteritems():
+                for unk, req in _stmt.unknowns.items():
                     if req.state != ResState.RESOLVED:
                         _stmt.resolve(req, config) 
 

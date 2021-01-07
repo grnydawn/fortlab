@@ -22,6 +22,7 @@ import re
 import abc
 import os, glob
 import sys
+import io
 import traceback
 
 class ParseError(Exception):
@@ -186,7 +187,7 @@ def get_module_files(directory, _cache={}):
     for ext in module_file_extensions:
         files += glob.glob(os.path.join(directory,'*'+ext))
     for fn in files:
-        f = open(fn,'r')
+        f = io.open(fn,'r', encoding="utf-8")
         for name in module_line.findall(f.read()):
             name = name[1]
             if name in d:
@@ -218,7 +219,8 @@ def get_module_file(name, directory, _cache={}):
 def module_in_file(name, filename):
     name = name.lower()
     pattern = re.compile(r'\s*module\s+(?P<name>[a-z]\w*)', re.I).match
-    f = open(filename,'r')
+    f = io.open(filename,'r', encoding="utf-8")
+
     for line in f:
         m = pattern(line)
         if m and m.group('name').lower()==name:

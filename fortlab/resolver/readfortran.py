@@ -1288,7 +1288,8 @@ class FortranStringReader(FortranReaderBase):
 
     def __init__(self, string, include_dirs = None, source_only = None):
 
-        self.id = 'string-'+str(id(string))
+        #self.id = 'string-'+str(id(string)) # KGen deletion
+        self.id = 'string-'+str(hash(string)) # KGen addition
         #source = StringIO(string)
         source = KGenStringIO(string)
         isfree, isstrict = get_source_info_str(string)

@@ -135,32 +135,43 @@ class FortranKernelGenerator(App):
             #    self.config['plugin']['priority']['ext.coverage'] = '%s/plugins/coverage'%KGEN_EXT
 
     def perform(self, args):
+
         self.config = args.analysis["_"]
 
         # process representativeness flags
         self._process_repr_flags(args)
 
         args.outdir = args.outdir["_"] if args.outdir else os.getcwd()
+
         if not os.path.exists(args.outdir):
             os.makedirs(args.outdir)
+
         self._trees = []
         self.genfiles = []
+
         self.config["used_srcfiles"].clear()
+
         state_realpath = os.path.realpath(os.path.join(args.outdir, "state"))
         kernel_realpath = os.path.realpath(os.path.join(args.outdir, "kernel"))
+
         self.config["path"]["kernel_output"] = kernel_realpath
         self.config["path"]["state_output"] = state_realpath
+
         self.add_forward(kerneldir=kernel_realpath, statedir=state_realpath)
+
         if not os.path.exists(kernel_realpath):
             os.makedirs(kernel_realpath)
+
         if not os.path.exists(state_realpath):
             os.makedirs(state_realpath)
+
         state_makefile = os.path.realpath(os.path.join(state_realpath, "Makefile"))
         kernel_makefile = os.path.realpath(os.path.join(kernel_realpath, "Makefile"))
         gencore_plugindir = os.path.join(here, "plugins", "gencore")
         verify_plugindir = os.path.join(here, "plugins", "verification")
         timing_plugindir = os.path.join(here, "plugins", "simple_timing")
         perturb_plugindir = os.path.join(here, "plugins", "perturb")
+
         if args.model:
             try:
                 if os.path.exists(args.model["_"]):
@@ -172,22 +183,25 @@ class FortranKernelGenerator(App):
             self.config["invocation"]["triples"].append(
                 (("0", "0"), ("0", "0"), ("1", "1"))
             )
+
         plugins = (
             ("ext.gencore", gencore_plugindir),
             ("ext.verification", verify_plugindir),
             ("ext.simple_timing", timing_plugindir),
             ("ext.perturb", perturb_plugindir),
         )
+
         init_plugins([KERNEL_ID_0], plugins, self.config)
         plugin_config["current"].update(self.config)
+
         driver = create_rootnode(KERNEL_ID_0)
         self._trees.append(driver)
         program = create_programnode(driver, KERNEL_ID_0)
         program.name = self.config["kernel_driver"]["name"]
         append_program_in_root(driver, program)
+
         for filepath, (srcobj, mods_used, units_used) in self.config[
-            "srcfiles"
-        ].items():
+            "srcfiles"].items():
             if hasattr(srcobj.tree, "geninfo") and KGGenType.has_state(
                 srcobj.tree.geninfo
             ):
@@ -249,6 +263,7 @@ class FortranKernelGenerator(App):
         kernel_files = []
         state_files = []
         enc = locale.getpreferredencoding(False)
+
         for kfile, sfile, filepath in self.genfiles:
             filename = os.path.basename(filepath)
             set_indent("")
@@ -283,6 +298,7 @@ class FortranKernelGenerator(App):
             if lines is not None:
                 lines = remove_multiblanklines(lines)
                 fd.write(tounicode(lines))
+
         kernel_files.append(self.config["kernel"]["name"])
         kernel_files.append(KGUTIL)
         self.generate_kgen_utils(kernel_realpath, enc)
@@ -290,12 +306,18 @@ class FortranKernelGenerator(App):
         kernel_files.append("Makefile")
         self.generate_state_makefile(state_realpath, enc)
         state_files.append("Makefile")
+
         if self.config["cmd_clean"]["cmds"]:
             run_shcmd(self.config["cmd_clean"]["cmds"])
+
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
+
+        import pdb; pdb.set_trace()
+
         out, err, retcode = run_shcmd("make", cwd=state_realpath)
         out, err, retcode = run_shcmd("make recover", cwd=state_realpath)
+
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
         return

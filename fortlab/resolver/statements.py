@@ -1387,7 +1387,7 @@ class Use(Statement):
         def __init__(self, public_names):
             self.supporting_names = public_names
 
-        def resolve(self, request):
+        def resolve(self, request, config):
             from fortlab.resolver.kgparse import ResState
             from fortlab.resolver.api import parse
 
@@ -1428,6 +1428,7 @@ class Use(Statement):
             return self.KgenIntrinsicModule(Intrinsic_Modules[modname.upper()])
 
     def get_exclude_actions(self, section_name, config, *args ):
+        from fortlab.kgutils import match_namepath
         if section_name=='namepath':
             if len(args)<1: return []
 
@@ -1442,7 +1443,6 @@ class Use(Statement):
 
     def resolve(self, request, config):
         from fortlab.resolver.kgparse import ResState, SrcFile
-        from fortlab.kgutils import match_namepath
         from fortlab.resolver.kgintrinsics import Intrinsic_Modules
 
         src = None
@@ -1464,6 +1464,7 @@ class Use(Statement):
                         logger.debug('\tin the search of "%s" directly from %s and originally from %s' % \
                             (request.uname.firstpartname(), os.path.basename(self.reader.id), \
                             os.path.basename(request.originator.reader.id)))
+
                         self.module = src.tree.a.module[self.name]
                     else:
                         raise UserException("Module, %s, is not found at %s. "
@@ -1662,7 +1663,7 @@ class Parameter(Statement):
             if node:
                 if not hasattr(self, 'unknowns') or len(self.unknowns)==0:
                     f2003_search_unknowns(self, node.items[1])
-                    for unknown, request in self.unknowns.iteritems():
+                    for unknown, request in self.unknowns.items():
                         if request.state != ResState.RESOLVED:
                             self.resolve(request)
 
