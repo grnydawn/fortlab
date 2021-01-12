@@ -171,7 +171,6 @@ class SrcFile(object):
         self.config = config
         self.srcpath = srcpath
         self.realpath = os.path.realpath(self.srcpath)
-
         
         # set source file format
         isfree = None
@@ -190,6 +189,7 @@ class SrcFile(object):
         macros_src = []
         if self.realpath in config["include"]['file']:
             rpath = config["include"]['file'][self.realpath]
+            srcbackup = rpath['srcbackup']
             path_src = rpath['path'] + [os.path.dirname(self.realpath)]
             path_src = [path for path in path_src if len(path)>0]
             for k, v in rpath['macro'].items():
@@ -197,6 +197,8 @@ class SrcFile(object):
                     macros_src.append('-D%s=%s'%(k,v))
                 else:
                     macros_src.append('-D%s'%k)
+        else:
+            srcbackup = []
 
         if os.path.isfile(config["mpi"]['header']):
             includes = ['-I %s'%incpath for incpath in
@@ -220,7 +222,13 @@ class SrcFile(object):
         new_lines = []
 
         enc = locale.getpreferredencoding(False)
-        with io.open(self.realpath, 'r', encoding=enc) as f:
+
+        opensrcpath = self.realpath
+
+        if not os.path.isfile(opensrcpath) and srcbackup:
+            opensrcpath = srcbackup[0]
+
+        with io.open(opensrcpath, 'r', encoding=enc) as f:
             if preprocess:
                 pp = config["bin"]['pp']
                 if pp.endswith('fpp'):

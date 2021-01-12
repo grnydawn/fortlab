@@ -401,7 +401,6 @@ class FortranReaderBase(object):
                     return fn
 
             # start of KGEN addition
-            #if mod_name=='pio': import pdb; pdb.set_trace()
             if self.id in config["include"]['file']:
                 for path in config["include"]['file'][self.id]['path']:
                     fn = get_module_file(mod_name, path) 

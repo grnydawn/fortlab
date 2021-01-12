@@ -2,7 +2,12 @@
 
 import sys
 import os
+import re
+import io
+import shutil
+import time
 import subprocess
+import multiprocessing
 
 from microapp import App
 from fortlab.scanner.compile import kgcompiler
@@ -13,6 +18,7 @@ STR_EN = b'ENOENT'
 STR_UF = b'<unfinished'
 STR_RE = b'resumed>'
 
+RE_INCLUDE = re.compile(r'(\A|^)#include\s+(\'|")(?P<name>(\w|\.)+)(\'|")\s*(!.*|)$',re.I | re.M)
 
 class FortranCompilerOption(App):
 
@@ -24,9 +30,8 @@ class FortranCompilerOption(App):
         self.add_argument("buildcmd", metavar="build command", help="Software build command")
         self.add_argument("--cleancmd", type=str, help="Software clean command.")
         self.add_argument("--workdir", type=str, help="work directory")
-        self.add_argument("--outdir", type=str, help="output directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
-        self.add_argument("--backup", type=str, help="saving source files used")
+        self.add_argument("--backupdir", type=str, help="saving source files used")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
 
@@ -43,20 +48,16 @@ class FortranCompilerOption(App):
             cwd = args.workdir["_"]
             os.chdir(cwd)
 
-        outdir = cwd
-        if args.outdir:
-            outdir = args.outdir["_"]
-
         if args.cleancmd:
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
 
-        srcbackup = args.backup["_"] if args.backup else None
+        backupdir = args.backupdir["_"] if args.backupdir else None
 
-        if srcbackup
-            srcnum = 0
-
-            if not os.path.isdir(srcbackup):
-                os.makedirs(srcbackup)
+        if backupdir:
+            inq = multiprocessing.Queue()
+            outq = multiprocessing.Queue()
+            proc = multiprocessing.Process(target=self.get_includes, args=(backupdir, inq, outq))
+            proc.start()
 
         # build with strace
    
@@ -69,6 +70,7 @@ class FortranCompilerOption(App):
             process = subprocess.Popen(stracecmd, stdin=subprocess.PIPE, \
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
                         shell=True)
+
 
             while True:
 
@@ -105,16 +107,22 @@ class FortranCompilerOption(App):
                                             srcs, incs, macros, openmp, options = compiler.parse_option(cmdlist, self._getpwd(env))
                                             if len(srcs)>0:
                                                 for src in srcs:
-                                                    info = {"compiler": exepath, "include": incs,
-                                                            "macros": macros, "openmp": openmp,
-                                                            "options": options}
                                                     #flags[src] = (exepath, incs, macros, openmp, options)
-                                                    flags[src] = info
+                                                    flags[src] = {"compiler": exepath, "include": incs,
+                                                            "macros": macros, "openmp": openmp,
+                                                            "options": options, "srcbackup": []}
+
+                                                    if backupdir:
+                                                        if os.path.isfile(src):
+                                                            inq.put((src, incs))
+
+                                                        else:
+                                                            print("Warning: %s is not backuped" % src)
+
                                                     if args.verbose:
                                                         print("Compiled: %s by %s" % (src, exepath))
                                                         print(str(options))
 
-                                                    if srcbackup:
                                                     #if src in flags:
                                                     #    flags[src].append((exepath, incs, macros, openmp, options))
                                                     #else:
@@ -123,11 +131,18 @@ class FortranCompilerOption(App):
                                     raise
                                     pass
 
+            inq.put(None)
+
             # get return code
             retcode = process.poll()
                                          
             if args.check and retcode != 0:
                 raise Exception("strace returned non-zero value: %d" % retcode)
+
+            backupsrcs = outq.get()
+
+            proc.join()
+
 
         #except Exception as err:
         #    raise
@@ -136,6 +151,9 @@ class FortranCompilerOption(App):
 
         #if args.cleancmd:
         #    cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
+
+        for fname, backups in backupsrcs.items():
+            flags[fname]["srcbackup"].extend(backups)
 
         self.add_forward(data=flags)
 #
@@ -168,3 +186,54 @@ class FortranCompilerOption(App):
             if item.startswith('PWD='):
                 return item[4:]
         return None
+
+    def get_includes(self, outdir, inq, outq):
+
+        data = {}
+
+        srcnum = 0
+
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)
+
+        while(True):
+            if inq.empty():
+                time.sleep(0.001)
+
+            else:
+                srcincs = inq.get()
+
+                if srcincs is None:
+                    break
+
+                else:
+                    self._backup(outdir, srcnum, srcincs, data)
+                    srcnum += 1
+
+        outq.put(data)
+
+    def _backup(self, outdir, srcnum, srcincs, data):
+
+        path, incs = srcincs
+
+        backup = os.path.join(outdir, str(srcnum))
+        shutil.copy(path, backup)
+        data[path] = [backup]
+
+        dirname = os.path.dirname(path)
+        incs.insert(0, dirname)
+
+        with io.open(path,'r', encoding="utf-8") as f:
+            lines = f.read()
+
+            for incidx, match in enumerate(RE_INCLUDE.findall(lines)):
+                incfilename = match[2].strip()
+
+                for incdir in incs: 
+                    incsrc = os.path.join(incdir, incfilename)
+
+                    if os.path.isfile(incsrc):
+                        incbackup = os.path.join(outdir, "%d-%d" % (srcnum, incidx))
+                        shutil.copy(incsrc, incbackup)
+                        data[path].append((incsrc, incbackup))
+                        break

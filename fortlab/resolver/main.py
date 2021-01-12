@@ -318,11 +318,12 @@ class FortranNameResolver(App):
                     self.config["include"]['file'][realpath]['compiler'] = None
                     self.config["include"]['file'][realpath]['compiler_options'] = None
                     self.config["include"]['file'][realpath]['macro'] = OrderedDict()
+                    self.config["include"]['file'][realpath]['srcbackup'] = []
 
                 for infotype, infovalue in value.items():
                     if infotype=='include':
                         self.config["include"]['file'][realpath]['path'].extend(infovalue)
-                    elif infotype in [ 'compiler', 'options', "openmp" ]:
+                    elif infotype in [ 'compiler', 'options', "openmp", "srcbackup" ]:
                         self.config["include"]['file'][realpath][infotype] = infovalue
                     else:
                         for mkey, mvalue in infovalue:
@@ -866,7 +867,7 @@ class FortranNameResolver(App):
         # parsing MPI parameters
         if opts.mpi:
             self.config['mpi']['enabled'] = True
-            self.config['add_mpi_frame']['enabled'] = True
+
             for line in opts.mpi:
                 line = line["_"]
                 for mpi in line.split(','):

@@ -19,7 +19,7 @@ class MicroappBuildScanner(App):
         self.add_argument("--workdir", type=str, help="work directory")
         self.add_argument("--savejson", type=str, help="save data in a josn-format file")
         self.add_argument("--reuse", type=str, help="reuse existing file(s)")
-        self.add_argument("--backup", type=str, help="saving source files used")
+        self.add_argument("--backupdir", type=str, help="saving source files used")
         self.add_argument("--verbose", action="store_true", help="show compilation details")
         self.add_argument("--check", action="store_true", help="check strace return code")
 
@@ -48,14 +48,14 @@ class MicroappBuildScanner(App):
         if args.savejson:
             opts += ["--savejson", args.savejson["_"]]
 
+        if args.backupdir:
+            opts += ["--backupdir", args.backupdir["_"]]
+
         if args.verbose:
             opts += ["--verbose"]
 
         if args.check:
             opts += ["--check"]
-
-        if args.backup:
-            opts += ["--backup"]
 
         ret, fwds = self.run_subapp("compileroption", opts)
         assert ret == 0, "compileroption returned non-zero code."

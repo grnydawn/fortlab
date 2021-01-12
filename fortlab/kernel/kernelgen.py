@@ -313,13 +313,19 @@ class FortranKernelGenerator(App):
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
 
-        import pdb; pdb.set_trace()
-
         out, err, retcode = run_shcmd("make", cwd=state_realpath)
+
+        if retcode != 0:
+            print("ERROR: state make error")
+
         out, err, retcode = run_shcmd("make recover", cwd=state_realpath)
+
+        if retcode != 0:
+            print("ERROR: state recover error")
 
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
+
         return
 
     def generate_kgen_utils(self, kernel_path, enc):
