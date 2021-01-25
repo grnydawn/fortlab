@@ -410,7 +410,7 @@ def search_Allocate_Stmt(stmt, node, config, gentype=None):
     """ Identifying a name in Allocate_Stmt node"""
     get_name_or_defer(stmt, node.items[0], res_typespec, config)
     get_name_or_defer(stmt, node.items[1], res_typedecl, config)
-    defer(stmt, node.items[2])
+    defer(stmt, node.items[2], config)
 
 def search_Allocation(stmt, node, config, gentype=None): 
     """ Identifying a name in Allocation node"""
