@@ -2967,7 +2967,10 @@ class Enumerator(Statement):
         return self.get_indent_tab(isfix=isfix) + 'ENUMERATOR ' + ', '.join(self.items)
 
     # start of KGEN addition
-    def tofortran(self):
+
+    def analyze(self): return
+
+    def tokgen(self):
         return 'ENUMERATOR ' + ', '.join(self.items)
     # end of KGEN addition
 

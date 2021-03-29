@@ -352,7 +352,12 @@ class Module(BeginStatement, HasAttributes,
                     stmt.error('Expected END MODULE statement (analyzer).')
                 continue
             #from statements import Comment
-            stmt.analyze()
+            try:
+                stmt.analyze()
+
+            except Exception as e:
+                #import pdb ;pdb.set_trace()
+                print (e)
 
         if content:
             logger.debug('Not analyzed content: %s' % content)
@@ -1567,6 +1572,18 @@ class Enum(BeginStatement):
     def get_classes(self):
         return [Enumerator]
 
+    # start of KGEN addition
+    def analyze(self):
+        #import pdb; pdb.set_trace()
+        return
+
+    def tokgen(self):
+        return self.tostr()
+
+    def tostr(self):
+        return "enum,bind(c)"
+
+    # end of KGEN addition
 ###################################################
 
 from fortlab.resolver import statements

@@ -5,6 +5,7 @@
 # Embedded file name: /home/grnydawn/repos/github/fortlab/fortlab/kernel/kernelgen.py
 # Compiled at: 2020-07-13 10:26:24
 import os, io, locale, math, random
+
 from collections import OrderedDict
 from microapp import App
 from fortlab.kggenfile import (
@@ -21,6 +22,7 @@ from fortlab.kggenfile import (
 )
 from fortlab.kgutils import (
     ProgramException,
+    UserException,
     remove_multiblanklines,
     run_shcmd,
     tounicode,
@@ -859,9 +861,10 @@ class FortranKernelGenerator(App):
             self.write(f, "")
 
     def read_model(self, modeljson, config):
-        #cfg = configparser.ConfigParser()
-        #cfg.optionxform = str
-        #cfg.read(modelfile)
+
+        if "etime" not in modeljson:
+            raise UserException("'etime' is not in model json file")
+
         emeta = modeljson["etime"]["_summary_"]
         del modeljson["etime"]["_summary_"]
         etimes = modeljson["etime"]

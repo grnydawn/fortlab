@@ -1,16 +1,24 @@
 MODULE calc_mod
+
+    enum , bind(c)
+      enumerator :: One = 1 
+      enumerator :: Two
+      enumerator :: Three
+    end enum
+
     PUBLIC calc
 CONTAINS
     SUBROUTINE calc(i, j, output, out2, out3)
         INTEGER, INTENT(IN) :: i, j
         real, INTENT(OUT), dimension(:,:) :: out3, output, out2
+
           ! Also a comment
-		!$kgen coverage test1
+        !$kgen coverage test1
         IF ( i > j ) THEN
-            output(i,j) = i - j
-            out2(i, j) = 2*(i-j)
-            out3(i, j) = 3*(i-j)
-		!$kgen coverage test2
+            output(i,j) = i - j + REAL(One)
+            out2(i, j) = 2*(i-j) + REAL(Two)
+            out3(i, j) = 3*(i-j) + REAL(Three)
+        !$kgen coverage test2
         ELSE
             output(i,j) = j - i
             out2(i, j) = 2*(j-i)

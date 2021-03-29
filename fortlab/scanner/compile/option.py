@@ -51,13 +51,19 @@ class FortranCompilerOption(App):
         if args.cleancmd:
             cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
 
-        backupdir = args.backupdir["_"] if args.backupdir else None
+        if args.backupdir:
+            backupdir = args.backupdir["_"]
 
-        if backupdir:
-            inq = multiprocessing.Queue()
-            outq = multiprocessing.Queue()
-            proc = multiprocessing.Process(target=self.get_includes, args=(backupdir, inq, outq))
-            proc.start()
+        else:
+            backupdir = os.path.join(os.getcwd(), "backup", "src")
+
+        if not os.path.exists(backupdir):
+            os.makedirs(backupdir)
+
+        inq = multiprocessing.Queue()
+        outq = multiprocessing.Queue()
+        proc = multiprocessing.Process(target=self.get_includes, args=(backupdir, inq, outq))
+        proc.start()
 
         # build with strace
    
