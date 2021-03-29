@@ -41,6 +41,7 @@ CONTAINS_PART = 'contains'
 SUBP_PART = 'subp'
 EXEC_PART = 'exec'
 TYPE_PART = 'type'
+ENUM_PART = 'enum'
 #TYPE_PD_PART = 'type_pd'
 #TYPE_POS_PART = 'type_pos'
 #TYPE_COMP_PART = 'type_comp'
@@ -57,6 +58,7 @@ match_classes = {
     #block_statements.Type: [ TYPE_PD_PART, TYPE_POS_PART, TYPE_COMP_PART, TYPE_BP_PART_CONTAINS, TYPE_BP_PART ],
     block_statements.Type: [ TYPE_PART ],
     block_statements.BlockData: [ USE_PART, IMPORT_PART, IMPLICIT_PART, DECL_PART ],
+    block_statements.Enum: [ ENUM_PART ],
     block_statements.Interface: [ INTF_SPEC_PART ]
 }
 
@@ -72,6 +74,7 @@ part_classes = {
     SUBP_PART: block_statements.internal_subprogram,
     EXEC_PART: block_statements.execution_part,
     TYPE_PART: block_statements.private_or_sequence + block_statements.component_part + block_statements.type_bound_procedure_part,
+    ENUM_PART: [ statements.Enumerator ],
 #    TYPE_PD_PART: [ typedecl_statements.Integer ],
 #    TYPE_POS_PART: block_statements.private_or_sequence,
 #    TYPE_COMP_PART: block_statements.component_part,
@@ -1186,7 +1189,7 @@ class Gen_BeginStatement(object):
                 new_order.append(name)
 
         if not matched:
-            #import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             raise ProgramException('Wrong sequence of stmt type: %s'%item.kgen_stmt.__class__)
 
         return new_order

@@ -59,7 +59,7 @@ class FortranTimingCollector(App):
         nprocs = 1
         fwds = {"data": mpipaths}
         group_opts = ["--multiproc", "%d" % nprocs, "--assigned-input",
-               "data:@data", "--clone", "%d" % len(mpipaths), "--forwarding", "accumulate"]
+               "data:@data", "--clone", "%d" % len(mpipaths), "--data-join", "accumulate"]
         #group_opts = ["--assigned-input", "data:@data", "--clone", "%d" % len(mpipaths), "--forwarding", "accumulate"]
         app_args = ["_tcollect", "@data"]
 
@@ -71,8 +71,11 @@ class FortranTimingCollector(App):
 
         unregister_appclass(_TCollect)
 
+        # how many groups per app
         for grp, pathouts in fwds.items():
+            # how many exits per group
             for pathout in pathouts:
+                # how many edges per exit
                 for etime, emeta in pathout["data"]: # using group command
                 #etime, emeta = pathout["data"]
 

@@ -1608,7 +1608,7 @@ module_subprogram_part = [ Contains, Function, Subroutine ]
 specification_stmt = access_spec + [ Allocatable, Asynchronous, Bind,
     Common, Data, Dimension, Equivalence, External, Intent, Intrinsic,
     Namelist, Optional, Pointer, Protected, Save, Target, Volatile,
-    Value ]
+    Value, Enumerator ]
 
 intrinsic_type_spec = [ SubprogramPrefix, Integer , Real,
     DoublePrecision, Complex, DoubleComplex, Character, Logical, Byte
