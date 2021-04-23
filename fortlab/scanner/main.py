@@ -27,9 +27,12 @@ class MicroappBuildScanner(App):
 
     def perform(self, args):
 
+        strace_data = None
         if args.reuse and os.path.isfile(args.reuse["_"]):
             with open(args.reuse["_"]) as f:
                 strace_data = json.load(f)
+
+        if strace_data:
             self.add_forward(data=strace_data)
             return
 

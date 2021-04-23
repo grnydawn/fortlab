@@ -77,7 +77,6 @@ class FortranCompilerOption(App):
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
                         shell=True)
 
-
             while True:
 
                 #line = process.stdout.readline()
