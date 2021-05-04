@@ -12,7 +12,7 @@ import fortlab.resolver.Fortran2003 as Fortran2003
 #from typedecl_statements import TypeDeclarationStatement, TypeStmt, Procedure # TEEMP
 from fortlab.resolver.typedecl_statements import TypeDeclarationStatement, TypeStmt
 from fortlab.resolver.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
-from fortlab.resolver.statements import External, Common, SpecificBinding
+from fortlab.resolver.statements import External, Common, SpecificBinding, Enumerator
 from collections import OrderedDict
 
 #import logging
@@ -27,7 +27,8 @@ res_derivedtype = [ Type, TypeDecl ]
 res_associate = [ Associate ] 
 res_kind = [ TypeDeclarationStatement ] + res_derivedtype
 res_typespec = [ TypeDeclarationStatement ] + res_derivedtype
-res_value = [ TypeDeclarationStatement, Function, Interface ] + res_external + res_associate
+res_value = ([ TypeDeclarationStatement, Function, Interface, Enumerator ] +
+             res_external + res_associate)
 res_subroutine = [ Subroutine, Interface ] + res_external
 res_function = [ Function, Interface ] + res_external
 res_subprogram = [ Subroutine, Function, Interface ] + res_external
@@ -1180,4 +1181,13 @@ def search_Char_Selector(stmt, node, config, gentype=None):
     get_name_or_defer(stmt, node.items[0], res_value, config)
     get_name_or_defer(stmt, node.items[1], res_value, config)
 
+def search_Enum_Def_Stmt(stmt, node, config, gentype=None):
+    pass
+  
+def search_Enumerator_Def_Stmt(stmt, node, config, gentype=None):
 
+    get_name_or_defer(stmt, node.items[1], res_value, config)
+  
+def search_Enumerator(stmt, node, config, gentype=None):
+
+    get_name_or_defer(stmt, node.items[2], res_value, config)

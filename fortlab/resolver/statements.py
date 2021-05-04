@@ -2957,18 +2957,35 @@ class Enumerator(Statement):
     f2003_class = Fortran2003.Enumerator_Def_Stmt # KGEN addition
 
     match = re.compile(r'enumerator\b',re.I).match
+
     def process_item(self):
         line = self.item.get_line()[10:].lstrip()
         if line.startswith('::'):
             line = line[2:].lstrip()
         self.items = split_comma(line, self.item)
+
+        # start of KGEN addition
+        self.named_consts = {}
+        for item in self.items:
+            pos = item.find("=")
+
+            if pos > 0:
+                self.named_consts[item[:pos].strip()] = item[pos+1:].strip()
+
+            else:
+                self.named_consts[item.strip()] = None
+        # end of KGEN addition
         return
+
     def tofortran(self, isfix=None):
         return self.get_indent_tab(isfix=isfix) + 'ENUMERATOR ' + ', '.join(self.items)
 
     # start of KGEN addition
+    def analyze(self):
 
-    def analyze(self): return
+        for consts in self.named_consts:
+            self.parent.parent.a.enum_decls[consts] = (self.parent, self)
+        return
 
     def tokgen(self):
         return 'ENUMERATOR ' + ', '.join(self.items)

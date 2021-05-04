@@ -9,6 +9,7 @@ MODULE calc_mod
     PUBLIC calc
 CONTAINS
     SUBROUTINE calc(i, j, output, out2, out3)
+        IMPLICIT NONE
         INTEGER, INTENT(IN) :: i, j
         real, INTENT(OUT), dimension(:,:) :: out3, output, out2
 

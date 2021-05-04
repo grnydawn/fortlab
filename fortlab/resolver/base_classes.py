@@ -1239,6 +1239,26 @@ class BeginStatement(Statement):
                                 if req.state != ResState.RESOLVED:
                                     _stmt.resolve(req, config) 
 
+            # check if a enum can resolve
+            if request.state != ResState.RESOLVED and hasattr(self.a, 'enum_decls') and \
+                request.uname.firstpartname() in self.a.enum_decls.keys():
+                enum_stmt, enumerator_stmt  = self.a.enum_decls[request.uname.firstpartname()]
+                if any( isinstance(enumerator_stmt, resolver) for resolver in request.resolvers ):
+                    logger.debug('The request is being resolved by a enumdecl')
+                    request.res_stmts.append(enum_stmt)
+                    request.state = ResState.RESOLVED
+                    enum_stmt.add_geninfo(request.uname, request)
+                    self.check_spec_stmts(request.uname, request)
+                    logger.debug('%s is resolved'%request.uname.firstpartname())
+
+                    for _stmt, _depth in walk(enum_stmt, -1):
+                        if not hasattr(_stmt, 'unknowns'):
+                            f2003_search_unknowns(_stmt, _stmt.f2003, config)
+                        if hasattr(_stmt, 'unknowns'):
+                            for unk, req in _stmt.unknowns.items():
+                                if req.state != ResState.RESOLVED:
+                                    _stmt.resolve(req, config) 
+
             # check if a module variable can resolve
             # NOTE: check if the resolver is in the file or in other file
             if request.state != ResState.RESOLVED and hasattr(self.a, 'variables') and \

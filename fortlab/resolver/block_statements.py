@@ -157,6 +157,10 @@ class HasTypeDecls(object):
             return self.get_entity(kind)
         return type_decl
 
+class HasEnumDecls(object):
+
+    a = AttributeHolder(enum_decls = {})
+
 class HasAttributes(object):
 
     known_attributes = []
@@ -299,7 +303,7 @@ class EndModule(EndStatement):
 
 class Module(BeginStatement, HasAttributes,
              #HasImplicitStmt, HasUseStmt, HasVariables, # KGEN deletion
-             HasImplicitStmt, HasUseStmt, HasVariables, HasCommonStmts, # KGEN addition
+             HasImplicitStmt, HasUseStmt, HasVariables, HasCommonStmts, HasEnumDecls, # KGEN addition
              HasTypeDecls, AccessSpecs):
     """
     MODULE <name>
@@ -688,7 +692,7 @@ class Interface(BeginStatement, HasAttributes, HasImplicitStmt, HasUseStmt,
 class SubProgramStatement(BeginStatement, ProgramBlock,
                           HasImplicitStmt, HasAttributes,
                           #HasUseStmt, # KGEN deletion
-                          HasUseStmt, HasCommonStmts, # KGEN addition
+                          HasUseStmt, HasCommonStmts, HasEnumDecls, # KGEN addition
                           HasVariables, HasTypeDecls, AccessSpecs
                           ):
     """
@@ -1569,12 +1573,24 @@ class Enum(BeginStatement):
     match = re.compile(r'enum\s*,\s*bind\s*\(\s*c\s*\)\Z',re.I).match
     def process_item(self):
         return BeginStatement.process_item(self)
+
     def get_classes(self):
         return [Enumerator]
 
     # start of KGEN addition
     def analyze(self):
-        #import pdb; pdb.set_trace()
+
+        content = self.content[:]
+        while content:
+            stmt = content.pop(0)
+            if isinstance(stmt, self.end_stmt_cls):
+                break
+            stmt.analyze()
+
+        if content:
+            logging.info('Not analyzed content: %s' % content)
+            # self.show_message('Not analyzed content: %s' % content)
+
         return
 
     def tokgen(self):
