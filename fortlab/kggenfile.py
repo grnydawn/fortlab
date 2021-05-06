@@ -249,11 +249,8 @@ class PluginMsg(object):
 
 def event_point(cur_kernel_id, cur_file_type, cur_gen_stage, node, plugins=None):
     # event debugging
-    #if cur_file_type=='K' and cur_gen_stage==0 and isinstance(node.kgen_stmt, statements.Call):
-    #    import pdb; pdb.set_trace() 
     if not node.kgen_isvalid: return
 
-    #import pdb; pdb.set_trace()
     for plugin_name, plugin_modules in event_register.items():
         if not plugins or plugin_name not in plugins: continue
         for plugin_name, plugin_objects in plugin_modules.items():
@@ -878,9 +875,6 @@ class Gen_Statement(object):
                     else:
                         return
 
-                #if isinstance(self, GenK_Statement) and lines_str and lines_str.find('MPI_finalize')>0:
-                #    import pdb; pdb.set_trace()
-
                 if self.kgen_use_tokgen:
                     if isinstance(self.kgen_stmt, block_statements.BeginStatement) and \
                         not self.kgen_stmt.__class__ in [ block_statements.If ]:
@@ -929,7 +923,6 @@ class Gen_Statement(object):
             else: raise ProgramException('Class does not have stmt nor match_class')
 
     def tokgen(self):
-        #import pdb; pdb.set_trace()
         raise ProgramException('Inherited class should implement tokgen().')
 
 class GenK_Statement(Gen_Statement):
@@ -1023,8 +1016,6 @@ class Gen_BeginStatement(object):
 
         if stmt:
             insert_order = self.kgen_part_order[:]
-            #if isinstance(stmt, block_statements.Interface) and stmt.content[0].name=='mpas_decomp_function':
-            #    import pdb; pdb.set_trace()
             deferred_stmts = []
             for node in stmt.content[:-1]:
                 item = genobj(self, node, self.kgen_kernel_id)
@@ -1131,7 +1122,6 @@ class Gen_BeginStatement(object):
                     node.finalize(plugins)
 
     def beginstatement_flatten(self, kernel_id, plugins):
-        #import pdb; pdb.set_trace()
         for name in self.kgen_part_order:
             part = getattr(self, get_partname(name, False))
             flatten_part = []
@@ -1175,7 +1165,6 @@ class Gen_BeginStatement(object):
                             matched = True
                             append_item_in_part(self, name, item)
                     else:
-                        #import pdb; pdb.set_trace()
                         raise ProgramException('Wrong sequence for StmtFuncStatement: %s'%item.kgen_stmt.__class__)
                 elif item.kgen_stmt.__class__ in part_classes[name]:
 
@@ -1189,7 +1178,6 @@ class Gen_BeginStatement(object):
                 new_order.append(name)
 
         if not matched:
-            import pdb; pdb.set_trace()
             raise ProgramException('Wrong sequence of stmt type: %s'%item.kgen_stmt.__class__)
 
         return new_order

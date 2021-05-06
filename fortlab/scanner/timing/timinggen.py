@@ -64,42 +64,41 @@ class FortranTimingGenerator(App):
 
         self.add_forward(etimedir=etime_realpath, modeldir=model_realpath)
 
-        if not self.hasmodel(args.outdir) or args.no_cache:
-            data_etime_path = os.path.join(model_realpath, "__data__",
-                                self.config["model"]['types']['etime']['id'])
+        data_etime_path = os.path.join(model_realpath, "__data__",
+                            self.config["model"]['types']['etime']['id'])
 
-            if not os.path.exists(etime_realpath):
-                os.makedirs(etime_realpath)
+        if not os.path.exists(etime_realpath):
+            os.makedirs(etime_realpath)
 
-            if (os.path.exists(data_etime_path) and len(glob.glob(os.path.join(
-                    data_etime_path, "*"))) > 0 and
-                    self.config["model"]['reuse_rawdata']):
-                logger.info('Reusing elapsedtime raw data.')
+        if (os.path.exists(data_etime_path) and len(glob.glob(os.path.join(
+                data_etime_path, "*"))) > 0 and
+                self.config["model"]['reuse_rawdata']):
+            logger.info('Reusing elapsedtime raw data.')
 
-            else:
-                logger.info('Generating elapsedtime raw data.')
+        else:
+            logger.info('Generating elapsedtime raw data.')
 
-                if os.path.exists(data_etime_path):
-                    shutil.rmtree(data_etime_path)
+            if os.path.exists(data_etime_path):
+                shutil.rmtree(data_etime_path)
 
-                rsc_etime_path = os.path.join(model_realpath, "__data__",
-                    "__resource__", self.config["model"]['types']['etime']['id'])
+            rsc_etime_path = os.path.join(model_realpath, "__data__",
+                "__resource__", self.config["model"]['types']['etime']['id'])
 
-                if os.path.exists(rsc_etime_path):
-                    shutil.rmtree(rsc_etime_path)
+            if os.path.exists(rsc_etime_path):
+                shutil.rmtree(rsc_etime_path)
 
-                time.sleep(1)
+            time.sleep(1)
 
-                os.makedirs(data_etime_path)
-                os.makedirs(rsc_etime_path)
+            os.makedirs(data_etime_path)
+            os.makedirs(rsc_etime_path)
 
-                # generate wrapper nodes
-                for filepath, (srcobj, mods_used, units_used) in self.config["srcfiles"].items():
-                    if os.path.realpath(filepath) == os.path.realpath(self.config["callsite"]['filepath']):
-                        sfile = gensobj(None, srcobj.tree, KERNEL_ID_0)
-                        sfile.used4etime = True
-                        self.genfiles.append((sfile, filepath))
-                        self.config["used_srcfiles"][filepath] = (sfile, mods_used, units_used)
+            # generate wrapper nodes
+            for filepath, (srcobj, mods_used, units_used) in self.config["srcfiles"].items():
+                if os.path.realpath(filepath) == os.path.realpath(self.config["callsite"]['filepath']):
+                    sfile = gensobj(None, srcobj.tree, KERNEL_ID_0)
+                    sfile.used4etime = True
+                    self.genfiles.append((sfile, filepath))
+                    self.config["used_srcfiles"][filepath] = (sfile, mods_used, units_used)
 
 
 #                here = os.path.dirname(os.path.realpath(__file__))
@@ -109,94 +108,50 @@ class FortranTimingGenerator(App):
 #
 #                init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, self.config)
 
-                # process each nodes in the tree
-                for plugin_name in event_register.keys():
-                    if not plugin_name.startswith('etime'): continue
+            # process each nodes in the tree
+            for plugin_name in event_register.keys():
+                if not plugin_name.startswith('etime'): continue
 
-                    for sfile, filepath in self.genfiles:
-                        sfile.created([plugin_name])
-
-                for plugin_name in event_register.keys():
-                    if not plugin_name.startswith('etime'): continue
-
-                    for sfile, filepath in self.genfiles:
-                        sfile.process([plugin_name])
-
-                for plugin_name in event_register.keys():
-                    if not plugin_name.startswith('etime'): continue
-
-                    for sfile, filepath in self.genfiles:
-                        sfile.finalize([plugin_name])
-
-                for plugin_name in event_register.keys():
-                    if not plugin_name.startswith('etime'): continue
-
-                    for sfile, filepath in self.genfiles:
-                        sfile.flatten(KERNEL_ID_0, [plugin_name])
-
-                # generate source files from each node of the tree
-                etime_files = []
-                #import pdb; pdb.set_trace()
                 for sfile, filepath in self.genfiles:
-                    #import pdb; pdb.set_trace()
-                    filename = os.path.basename(filepath)
-                    if sfile.used4etime:
-                        set_indent('')
-                        slines = sfile.tostring()
-                        if slines is not None:
-                            slines = remove_multiblanklines(slines)
-                            etime_files.append(filename)
-                            enc = locale.getpreferredencoding(False)
-                            with io.open(os.path.join(etime_realpath, filename), 'w', encoding=enc) as fd:
-                                fd.write(slines)
-                            with io.open(os.path.join(etime_realpath, filename+".kgen"), 'w', encoding=enc) as ft:
-                                ft.write('\n'.join(sfile.kgen_stmt.prep))
+                    sfile.created([plugin_name])
 
-                self.gen_makefile(etime_realpath)
+            for plugin_name in event_register.keys():
+                if not plugin_name.startswith('etime'): continue
 
-    def hasmodel(self, outdir):
+                for sfile, filepath in self.genfiles:
+                    sfile.process([plugin_name])
 
-        modelfile = os.path.join(outdir, "model.ini")
+            for plugin_name in event_register.keys():
+                if not plugin_name.startswith('etime'): continue
 
-        if not os.path.exists(modelfile):
-            return False
+                for sfile, filepath in self.genfiles:
+                    sfile.finalize([plugin_name])
 
-        has_general = False
-        has_modeltype = False
-        has_modelsection = False
-        section = ''
-        required_modelsections = []
-        model_sections = {}
+            for plugin_name in event_register.keys():
+                if not plugin_name.startswith('etime'): continue
 
-        with io.open(modelfile, 'r') as mf:
+                for sfile, filepath in self.genfiles:
+                    sfile.flatten(KERNEL_ID_0, [plugin_name])
 
-            for line in mf.readlines():
-                if line.startswith('['):
-                    pos = line.find(']')
-                    if pos > 0:
-                        section = line[1:pos].strip()
-                        if section == 'general':
-                            has_general = True
-                        else:
-                            mtype, msec = section.split('.')
-                            if mtype not in model_sections:
-                                model_sections[mtype] = []
-                            model_sections[mtype].append(msec)
-                elif section == 'general' and line.find('=') > 0:
-                    mtype, msections = line.split('=')
-                    if mtype.strip() == modeltype:
-                        required_modelsections = [s.strip() for s in
-                                                    msections.split(',')]
-                        has_modeltype = True
-                if has_modeltype and modeltype in model_sections and all(
-                    (msec in model_sections[modeltype]) for msec in
-                        required_modelsections):
-                    has_modelsection = True
+            # generate source files from each node of the tree
+            etime_files = []
+            #import pdb; pdb.set_trace()
+            for sfile, filepath in self.genfiles:
+                #import pdb; pdb.set_trace()
+                filename = os.path.basename(filepath)
+                if sfile.used4etime:
+                    set_indent('')
+                    slines = sfile.tostring()
+                    if slines is not None:
+                        slines = remove_multiblanklines(slines)
+                        etime_files.append(filename)
+                        enc = locale.getpreferredencoding(False)
+                        with io.open(os.path.join(etime_realpath, filename), 'w', encoding=enc) as fd:
+                            fd.write(slines)
+                        with io.open(os.path.join(etime_realpath, filename+".kgen"), 'w', encoding=enc) as ft:
+                            ft.write('\n'.join(sfile.kgen_stmt.prep))
 
-                if has_general and has_modeltype and has_modelsection:
-                    break
-
-        return has_general and has_modeltype and has_modelsection
+            self.gen_makefile(etime_realpath)
 
     def addsection(self, modeltype, section, options):
 

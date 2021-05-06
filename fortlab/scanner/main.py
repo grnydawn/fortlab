@@ -3,6 +3,7 @@ import os, json
 from microapp import App, appdict
 from collections import OrderedDict
 
+from fortlab.kgutils import dequote
 from fortlab.kggenfile import init_plugins, plugin_config, KERNEL_ID_0
 
 here = os.path.dirname(os.path.realpath(__file__))
@@ -133,6 +134,8 @@ class MicroappRunScanner(App):
 
     def perform(self, args):
 
+        self.config.update(args.analysis['_'])
+
         # generating model raw data
         if args.noreuse_rawdata:
             self.config['model']['reuse_rawdata'] = False if args.noreuse_rawdata else True
@@ -144,29 +147,45 @@ class MicroappRunScanner(App):
 
         self.config["model"]["path"] = os.path.realpath(modeldir)
  
-        mtypes = {u"datatype": u"model", u"datamap": {}, u"collectmap": {},
-                  u"combinemap": {}}
+        if args.cleancmd:
+            self.config["cmd_clean"]['cmds'] = dequote(args.cleancmd["_"])
 
-        scans = [s["_"] for s in args.add_scan]
+        if args.buildcmd:
+            self.config["cmd_build"]['cmds'] = dequote(args.buildcmd["_"])
+
+        if args.runcmd:
+            self.config["cmd_run"]['cmds'] = dequote(args.runcmd["_"])
+
+        if not os.path.isfile(args.output["_"]) or args.no_cache:
+
+            mtypes = {u"datatype": u"model", u"datamap": {}, u"collectmap": {},
+                      u"combinemap": {}}
+
+            scans = [s["_"] for s in args.add_scan]
 
 
-        if args.add_scan is None or "timing" in scans:
-            self.scan_timing(args, modeldir, mtypes, args.analysis["_"])
+            if args.add_scan is None or "timing" in scans:
+                self.scan_timing(args, modeldir, mtypes, self.config)
 
-        with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
-            json.dump(mtypes, f)
+            with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
+                json.dump(mtypes, f)
 
-        # TODO: wait if needed
+            # TODO: wait if needed
 
-        ret, fwds = self.combine_model(modeldir)
-        assert ret == 0, "combine_model returned non-zero code."
+            ret, fwds = self.combine_model(modeldir)
+            assert ret == 0, "combine_model returned non-zero code."
 
-        if args.output:
-            with open(args.output["_"], "w") as f:
-                json.dump(fwds["model"], f)
+            if args.output:
+                with open(args.output["_"], "w") as f:
+                    json.dump(fwds["model"], f)
 
-        self.add_forward(model=fwds['model'])
-        self.add_forward(analysis=args.analysis['_'])
+            self.add_forward(model=fwds['model'])
+
+        else:
+            with open(args.output["_"]) as f:
+                self.add_forward(model=json.load(f))
+
+        self.add_forward(analysis=self.config)
 
     def combine_model(self, modeldir):
 
@@ -194,6 +213,7 @@ class MicroappRunScanner(App):
 
         #cmd = ["timinggen", "@analysis"]
         opts = ["@analysis"]
+
 
         if args.cleancmd:
             opts += ["--cleancmd", args.cleancmd["_"]]
