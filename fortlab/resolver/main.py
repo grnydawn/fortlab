@@ -464,7 +464,7 @@ class FortranNameResolver(App):
 #                    ll.append(json.dump(f, c))
 
         if args.keep:
-            print("save option is not supported yet.")
+            print("Saving AST feature is not supported yet.")
 #            output_file = open(args.save["_"], 'w')
 #            json.dump(self.config, output_file, indent=4, separators=(',', ': '), default=jsondefault)
 #            output_file.write('\n')
