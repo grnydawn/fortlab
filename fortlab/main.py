@@ -10,6 +10,7 @@ from fortlab.scanner.timing import (FortranTimingGenerator,
 from fortlab.resolver import FortranNameResolver
 from fortlab.kernel import FortranKernelGenerator
 from fortlab.state import FortranStateGenerator
+from fortlab.vargen import FortranVariableAnalyzer
 
 class Fortlab(Project):
     _name_ = "fortlab"
@@ -23,7 +24,8 @@ class Fortlab(Project):
                       FortranCompilerOption, FortranNameResolver,
                       FortranTimingGenerator, FortranKernelGenerator,
                       FortranStateGenerator, MicroappModelCombiner,
-                      FortranTimingCollector, FortranTimingCombiner]
+                      FortranTimingCollector, FortranTimingCombiner,
+                      FortranVariableAnalyzer]
     _requires_ = ["dict2json>=0.1.2"]
 
     def __init__(self):
