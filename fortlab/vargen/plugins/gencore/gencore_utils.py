@@ -41,6 +41,12 @@ state_gencore_contains = []
 kernel_gencore_parts = OrderedDict()
 kernel_gencore_contains = []
 
+#### VARLIST
+modreadsubrs = OrderedDict()
+modwritesubrs = OrderedDict()
+localread = []
+localwrite = []
+
 DRIVER_USE_PART = 'DUP'
 DRIVER_DECL_PART = 'DDP'
 DRIVER_EXEC_PART ='DEP'

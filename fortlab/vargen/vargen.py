@@ -50,6 +50,45 @@ class FortranVariableAnalyzer(App):
 
         self.config = args.analysis["_"]
 
+        self.config['modelfile'] = 'model.ini'
+        self.config['model'] = OrderedDict()
+        self.config['model']['path'] = ""
+        self.config['model']['reuse_rawdata'] = True
+        self.config['model']['types'] = OrderedDict()
+        self.config['model']['types']['code'] = OrderedDict()
+        self.config['model']['types']['code']['id'] = '0'
+        self.config['model']['types']['code']['name'] = 'code'
+        self.config['model']['types']['code']['collector'] = 'codecollect'
+        self.config['model']['types']['code']['combiner'] = 'codecombine'
+        self.config['model']['types']['code']['percentage'] = 99.9
+        self.config['model']['types']['code']['filter'] = None
+        self.config['model']['types']['code']['ndata'] = 20
+        self.config['model']['types']['code']['enabled'] = False
+        self.config['model']['types']['etime'] = OrderedDict()
+        self.config['model']['types']['etime']['id'] = '1'
+        self.config['model']['types']['etime']['name'] = 'etime'
+        self.config['model']['types']['etime']['collector'] = 'timingcollect'
+        self.config['model']['types']['etime']['combiner'] = 'timingcombine'
+        self.config['model']['types']['etime']['nbins'] = 5
+        self.config['model']['types']['etime']['ndata'] = 20
+        self.config['model']['types']['etime']['minval'] = None
+        self.config['model']['types']['etime']['maxval'] = None
+        self.config['model']['types']['etime']['timer'] = None
+        self.config['model']['types']['etime']['enabled'] = True
+        self.config['model']['types']['papi'] = OrderedDict()
+        self.config['model']['types']['papi']['id'] = '2'
+        self.config['model']['types']['papi']['name'] = 'papi'
+        self.config['model']['types']['papi']['collector'] = 'papicollect'
+        self.config['model']['types']['papi']['combiner'] = 'papicombine'
+        self.config['model']['types']['papi']['nbins'] = 5
+        self.config['model']['types']['papi']['ndata'] = 20
+        self.config['model']['types']['papi']['minval'] = None
+        self.config['model']['types']['papi']['maxval'] = None
+        self.config['model']['types']['papi']['header'] = None
+        self.config['model']['types']['papi']['event'] = 'PAPI_TOT_INS'
+        self.config['model']['types']['papi']['static'] = None
+        self.config['model']['types']['papi']['dynamic'] = None
+        self.config['model']['types']['papi']['enabled'] = False
         args.outdir = args.outdir["_"] if args.outdir else os.getcwd()
 
         if not os.path.exists(args.outdir):
@@ -72,9 +111,11 @@ class FortranVariableAnalyzer(App):
             os.makedirs(kernel_realpath)
 
         gencore_plugindir = os.path.join(here, "plugins", "gencore")
+        varlist_plugindir = os.path.join(here, "plugins", "genvarlist")
 
         plugins = (
             ("ext.gencore", gencore_plugindir),
+            ("ext.genvarlist", varlist_plugindir),
         )
 
         init_plugins([KERNEL_ID_0], plugins, self.config)
