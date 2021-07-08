@@ -10,7 +10,6 @@ from .gencore_utils import get_topname, get_typedecl_writename, get_dtype_writen
     KERNEL_PBLOCK_USE_PART, DRIVER_READ_IN_EXTERNS, process_spec_stmts, get_module_out_writename, get_module_out_readname, \
     KERNEL_PBLOCK_READ_OUT_EXTERNS, STATE_PBLOCK_WRITE_OUT_EXTERNS, gen_write_istrue, gen_read_istrue, is_excluded, \
     is_remove_state, is_zero_array, DRIVER_USE_PART, check_class_derived, modreadsubrs, modwritesubrs
-from .gencore_subr import create_write_subr, create_read_subr
 
 class Gen_Typedecl_In_Module(Kgen_Plugin):
     def __init__(self):
@@ -129,21 +128,16 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
         #part_append_genknode(node, USE_PART, statements.Use, attrs=attrs)
 
     def create_kernel_module_parts(self, node):
+
         in_subrobj = None
         in_subrname = get_module_in_readname(node.kgen_stmt)
         checks = lambda n: isinstance(n.kgen_stmt, block_statements.Subroutine) and n.name==in_subrname
         if not part_has_node(node, SUBP_PART, checks):
 
-            checks = lambda n: n.kgen_isvalid and n.kgen_match_class==statements.Contains
-            if not node in kernel_gencore_contains and not part_has_node(node, CONTAINS_PART, checks):
-                part_append_comment(node, CONTAINS_PART, '')
-                part_append_genknode(node, CONTAINS_PART, statements.Contains)
-                part_append_comment(node, CONTAINS_PART, '')
-                kernel_gencore_contains.append(node)
-
             attrs = {'name': in_subrname, 'args': ['kgen_unit']}
-            part_append_comment(node, SUBP_PART, 'read state subroutine for %s'%in_subrname)
-            in_subrobj = part_append_genknode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+            #in_subrobj = part_append_genknode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+            in_subrobj = genkobj(node, block_statements.Subroutine, node.kgen_kernel_id, attrs=attrs)
+
             ###### VARLIST
             modreadsubrs[node] = in_subrobj
 
@@ -162,26 +156,15 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
 
             part_append_comment(in_subrobj, DECL_PART, '')
 
-            # add public stmt
-            attrs = {'items':[in_subrname]}
-            part_append_genknode(node, DECL_PART, statements.Public, attrs=attrs)
-
         out_subrobj = None
         if hasattr(node.kgen_stmt, 'geninfo') and KGGenType.has_state_out(node.kgen_stmt.geninfo):
             out_subrname = get_module_out_readname(node.kgen_stmt)
             checks = lambda n: isinstance(n.kgen_stmt, block_statements.Subroutine) and n.name==out_subrname
             if not part_has_node(node, SUBP_PART, checks):
 
-                checks = lambda n: n.kgen_isvalid and n.kgen_match_class==statements.Contains
-                if not node in kernel_gencore_contains and not part_has_node(node, CONTAINS_PART, checks):
-                    part_append_comment(node, CONTAINS_PART, '')
-                    part_append_genknode(node, CONTAINS_PART, statements.Contains)
-                    part_append_comment(node, CONTAINS_PART, '')
-                    kernel_gencore_contains.append(node)
-
                 attrs = {'name': out_subrname, 'args': ['kgen_unit']}
-                part_append_comment(node, SUBP_PART, 'read state subroutine for %s'%out_subrname)
-                out_subrobj = part_append_genknode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+                #out_subrobj = part_append_genknode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+                out_subrobj = genkobj(node, block_statements.Subroutine, node.kgen_kernel_id, attrs=attrs)
                 part_append_comment(node, SUBP_PART, '')
 
                 # kgen_unit
@@ -195,11 +178,6 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
 
                 attrs = {'type_spec': 'REAL', 'entity_decls': ['kgen_array_sum'], 'selector': (None, '8')}
                 part_append_genknode(out_subrobj, DECL_PART, typedecl_statements.Real, attrs=attrs)
-
-                # add public stmt
-                attrs = {'items':[out_subrname]}
-                part_append_genknode(node, DECL_PART, statements.Public, attrs=attrs)
-
 
         if in_subrobj or out_subrobj:
             self.kernel_externs_subrs[node] = ( in_subrobj, out_subrobj )
@@ -219,13 +197,6 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
         checks = lambda n: isinstance(n.kgen_stmt, block_statements.Subroutine) and n.name==in_subrname
         if not part_has_node(node, SUBP_PART, checks):
 
-            checks = lambda n: n.kgen_match_class==statements.Contains
-            if not node in state_gencore_contains and not part_has_node(node, CONTAINS_PART, checks):
-                part_append_comment(node, CONTAINS_PART, '')
-                part_append_gensnode(node, CONTAINS_PART, statements.Contains)
-                part_append_comment(node, CONTAINS_PART, '')
-                state_gencore_contains.append(node)
-
             attrs = {'name': in_subrname, 'args': ['kgen_unit']}
             part_append_comment(node, SUBP_PART, 'write in state subroutine for %s'%in_subrname)
             in_subrobj = part_append_gensnode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
@@ -244,26 +215,16 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
 
             part_append_comment(in_subrobj, DECL_PART, '')
 
-            # add public stmt
-            attrs = {'items':[in_subrname]}
-            part_append_gensnode(node, DECL_PART, statements.Public, attrs=attrs)
-
         out_subrobj = None
         if hasattr(node.kgen_stmt, 'geninfo') and KGGenType.has_state_out(node.kgen_stmt.geninfo):
             out_subrname = get_module_out_writename(node.kgen_stmt)
             checks = lambda n: isinstance(n.kgen_stmt, block_statements.Subroutine) and n.name==out_subrname
             if not part_has_node(node, SUBP_PART, checks):
 
-                checks = lambda n: n.kgen_match_class==statements.Contains
-                if not node in state_gencore_contains and not part_has_node(node, CONTAINS_PART, checks):
-                    part_append_comment(node, CONTAINS_PART, '')
-                    part_append_gensnode(node, CONTAINS_PART, statements.Contains)
-                    part_append_comment(node, CONTAINS_PART, '')
-                    state_gencore_contains.append(node)
-
                 attrs = {'name': out_subrname, 'args': ['kgen_unit']}
                 part_append_comment(node, SUBP_PART, 'write out state subroutine for %s'%out_subrname)
-                out_subrobj = part_append_gensnode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+                #out_subrobj = part_append_gensnode(node, SUBP_PART, block_statements.Subroutine, attrs=attrs)
+                out_subrobj = gensobj(node, block_statements.Subroutine, node.kgen_kernel_id, attrs=attrs)
                 part_append_comment(node, SUBP_PART, '')
 
                 modwritesubrs[node] = out_subrobj
@@ -280,10 +241,6 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                 part_append_gensnode(out_subrobj, DECL_PART, typedecl_statements.Real, attrs=attrs)
 
                 part_append_comment(out_subrobj, DECL_PART, '')
-
-                # add public stmt
-                attrs = {'items':[out_subrname]}
-                part_append_gensnode(node, DECL_PART, statements.Public, attrs=attrs)
 
         if in_subrobj or out_subrobj:
             self.state_externs_subrs[node] = (in_subrobj, out_subrobj)
@@ -419,9 +376,9 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
 
             entity_decls = get_decls(out_entity_names, stmt.entity_decls, prefix='kgenref_')
 
-            attrs = {'type_spec': stmt.__class__.__name__.upper(), 'attrspec': attrspec, \
-                'selector':stmt.selector, 'entity_decls': entity_decls}
-            part_append_genknode(node.kgen_parent, DECL_PART, stmt.__class__, attrs=attrs)
+            #attrs = {'type_spec': stmt.__class__.__name__.upper(), 'attrspec': attrspec, \
+            #    'selector':stmt.selector, 'entity_decls': entity_decls}
+            #part_append_genknode(node.kgen_parent, DECL_PART, stmt.__class__, attrs=attrs)
 
         is_class_derived = check_class_derived(stmt)
 
@@ -439,36 +396,15 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                 if is_zero_array(var, stmt): continue
                 if stmt.is_derived() or is_class_derived:
                     part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                    #VAR self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
-                    #if entity_name in out_entity_names:
-                    #    self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var, prefix='kgenref_')
-                    if subrname not in self.kernel_created_subrs:
-                        create_read_subr(subrname, entity_name, parent, var, stmt)
-                        self.kernel_created_subrs.append(subrname)
                 else: # intrinsic type
                     if var.is_explicit_shape_array():
                         part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "explicit array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                        #self.create_read_intrinsic(self.kernel_externs_subrs[node.kgen_parent][0], entity_name, stmt, var)
-                        #if entity_name in out_entity_names:
-                        #    self.create_read_intrinsic(self.kernel_externs_subrs[node.kgen_parent][1], entity_name, stmt, var, prefix='kgenref_')
                     else: # implicit array
                         part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "intrinsic array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                        #VAR self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
-                        #if entity_name in out_entity_names:
-                        #    self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var, prefix='kgenref_')
-                        if subrname not in self.kernel_created_subrs:
-                            create_read_subr(subrname, entity_name, parent, var, stmt)
-                            self.kernel_created_subrs.append(subrname)
             else: # scalar
                 if stmt.is_derived() or is_class_derived:
                     if var.is_allocatable() or var.is_pointer():
                         part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived allocatable(or pointer) input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                        #VAR self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
-                        #if entity_name in out_entity_names:
-                        #    self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var, prefix='kgenref_')
-                        if subrname not in self.kernel_created_subrs:
-                            create_read_subr(subrname, entity_name, parent, var, stmt)
-                            self.kernel_created_subrs.append(subrname)
                     else:
                         subrname = None
                         for uname, req in stmt.unknowns.items():
@@ -485,14 +421,8 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                                 (stmt.name, stmt.name))
                         else:
                             part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                            #VAR self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
-                            #if entity_name in out_entity_names:
-                            #    self.create_read_call(self.kernel_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var, prefix='kgenref_')
                 else: # intrinsic type
                     part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "intrinsic input variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                    #VAR self.create_read_intrinsic(self.kernel_externs_subrs[node.kgen_parent][0], entity_name, stmt, var)
-                    #if entity_name in out_entity_names:
-                    #    self.create_read_intrinsic(self.kernel_externs_subrs[node.kgen_parent][1], entity_name, stmt, var, prefix='kgenref_')
 
     def create_subr_write_typedecl_in_module(self, node):
         parent = node.kgen_parent
@@ -521,37 +451,20 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
             if var.is_array():
                 if is_zero_array(var, stmt): continue
                 if stmt.is_derived() or is_class_derived:
-                    #self.create_write_call(self.state_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
                     if entity_name in out_entity_names:
                         part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                        #self.create_write_call(self.state_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var)
-                    if subrname not in self.state_created_subrs:
-                        create_write_subr(subrname, entity_name, parent, var, stmt)
-                        self.state_created_subrs.append(subrname)
                 else: # intrinsic type
                     if var.is_explicit_shape_array():
-                        #self.create_write_intrinsic(self.state_externs_subrs[node.kgen_parent][0], entity_name, stmt, var)
                         if entity_name in out_entity_names:
                             part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "explicit array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                            #self.create_write_intrinsic(self.state_externs_subrs[node.kgen_parent][1], entity_name, stmt, var)
                     else: # implicit array
-                        #self.create_write_call(self.state_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
                         if entity_name in out_entity_names:
                             part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "implicit array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                            #self.create_write_call(self.state_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var)
-                        if subrname not in self.state_created_subrs:
-                            create_write_subr(subrname, entity_name, parent, var, stmt)
-                            self.state_created_subrs.append(subrname)
             else: # scalar
                 if stmt.is_derived() or is_class_derived:
                     if var.is_allocatable() or var.is_pointer():
-                        #self.create_write_call(self.state_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
                         if entity_name in out_entity_names:
                             part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived allocatable (or pointer) output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                            #self.create_write_call(self.state_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var)
-                        if subrname not in self.state_created_subrs:
-                            create_write_subr(subrname, entity_name, parent, var, stmt)
-                            self.state_created_subrs.append(subrname)
                     else:
                         subrname = None
                         for uname, req in stmt.unknowns.items():
@@ -567,69 +480,9 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                                 'ERROR: "%s" is not resolved. Call statements to write "%s" is not created here.'%\
                                 (stmt.name, stmt.name))
                         else:
-                            #self.create_write_call(self.state_externs_subrs[node.kgen_parent][0], subrname, entity_name, stmt, var)
                             if entity_name in out_entity_names:
                                 part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                                #self.create_write_call(self.state_externs_subrs[node.kgen_parent][1], subrname, entity_name, stmt, var)
                 else: # intrinsic type
-                    #self.create_write_intrinsic(self.state_externs_subrs[node.kgen_parent][0], entity_name, stmt, var)
                     if entity_name in out_entity_names:
                         part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "intrinsic output variable %s in module %s" % (entity_name, node.kgen_parent.name))
-                        #self.create_write_intrinsic(self.state_externs_subrs[node.kgen_parent][1], entity_name, stmt, var)
-
-    def create_read_intrinsic(self, subrobj, entity_name, stmt, var, prefix=''):
-
-        #VAR
-        part_append_comment(subrobj, EXEC_PART, "%s in %s" % (entity_name, mod_name))
-
-        #VAR pobj = gen_read_istrue(subrobj, var, entity_name)
-        pobj = subrobj
-
-        if var.is_allocatable() or var.is_pointer():
-            attrs = {'items': ['%s'%(prefix+entity_name)]}
-            #VAR part_append_genknode(pobj, EXEC_PART, statements.Allocate, attrs=attrs)
-
-        attrs = {'items': [prefix+entity_name], 'specs': ['UNIT = kgen_unit']}
-        #VAR part_append_genknode(pobj, EXEC_PART, statements.Read, attrs=attrs)
-
-        if var.is_array() and stmt.is_numeric():
-            attrs = {'designator': 'kgen_array_sumcheck', 'items': ['"%s"'%(prefix+entity_name), \
-                'kgen_array_sum', 'DBLE(SUM(%s, mask=(%s .eq. %s)))'%(prefix+entity_name, prefix+entity_name, prefix+entity_name), '.TRUE.']}
-            #VAR part_append_genknode(pobj, EXEC_PART, statements.Call, attrs=attrs)
-
-        if any(match_namepath(pattern, pack_exnamepath(stmt, entity_name), internal=False) for pattern in getinfo('print_var_names')):
-            if stmt.is_numeric() and var.is_array():
-                attrs = {'items': ['"KGEN DEBUG: DBLE(SUM(%s)) = "'%(prefix+entity_name), 'DBLE(SUM(%s, mask=(%s .eq. %s)))'%(prefix+entity_name, prefix+entity_name, prefix+entity_name)]}
-            else:
-                attrs = {'items': ['"KGEN DEBUG: %s = "'%(prefix+entity_name), prefix+entity_name]}
-            #VAR part_append_genknode(pobj, EXEC_PART, statements.Write, attrs=attrs)
-
-    def create_write_intrinsic(self, subrobj, entity_name, stmt, var):
-
-        pobj = gen_write_istrue(subrobj, var, entity_name)
-
-        attrs = {'items': [entity_name], 'specs': ['UNIT = kgen_unit']}
-        part_append_gensnode(pobj, EXEC_PART, statements.Write, attrs=attrs)
-
-        if any(match_namepath(pattern, pack_exnamepath(stmt, entity_name), internal=False) for pattern in getinfo('print_var_names')):
-            if stmt.is_numeric() and var.is_array():
-                attrs = {'items': ['"KGEN DEBUG: DBLE(SUM(%s)) = "'%(prefix+entity_name), 'DBLE(SUM(%s, mask=(%s .eq. %s)))'%(entity_name, entity_name, entity_name)]}
-            else:
-                attrs = {'items': ['"KGEN DEBUG: %s = "'%(prefix+entity_name), entity_name]}
-            part_append_gensnode(pobj, EXEC_PART, statements.Write, attrs=attrs)
-
-    def create_read_call(self, subrobj, callname, entity_name, stmt, var, prefix=''):
-
-        #VAR
-        part_append_comment(subrobj, EXEC_PART, "%s : %s" % (callname, entity_name))
-
-        pstr = '.TRUE.' if any(match_namepath(pattern, pack_exnamepath(stmt, entity_name), internal=False) for pattern in getinfo('print_var_names')) else '.FALSE.'
-        attrs = {'designator': callname, 'items': [prefix+entity_name, 'kgen_unit', '"%s"'%(prefix+entity_name), pstr]}
-        #VAR part_append_genknode(subrobj, EXEC_PART, statements.Call, attrs=attrs)
-
-    def create_write_call(self, subrobj, callname, entity_name, stmt, var, prefix=''):
-
-        pstr = '.TRUE.' if any(match_namepath(pattern, pack_exnamepath(stmt, entity_name), internal=False) for pattern in getinfo('print_var_names')) else '.FALSE.'
-        attrs = {'designator': callname, 'items': [entity_name, 'kgen_unit', '"%s"'%(prefix+entity_name), pstr]}
-        part_append_gensnode(subrobj, EXEC_PART, statements.Call, attrs=attrs)
 

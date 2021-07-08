@@ -9,7 +9,6 @@ from .gencore_utils import STATE_PBLOCK_WRITE_IN_ARGS, STATE_PBLOCK_WRITE_IN_LOC
     get_topname, get_typedecl_readname, get_dtype_readname, shared_objects, process_spec_stmts, is_zero_array, \
     is_excluded, is_remove_state, namedgen_read_istrue, namedgen_write_istrue, check_class_derived, localread, \
     localwrite
-from .gencore_subr import create_write_subr, create_read_subr
 
 class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
     def __init__(self):
@@ -296,10 +295,10 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                 #entity_decls = get_decls(localout_names, stmt.entity_decls, prefix='kgenref_')
                 #entity_enames = get_enames(localout_names, stmt.entity_decls, prefix='kgenref_')
 
-                attrs = {'type_spec': stmt.__class__.__name__.upper(), 'attrspec': attrspec, \
-                    'selector':stmt.selector, 'entity_decls': [ 'kgenref_%s'%localout_name ]}
-                    #'selector':stmt.selector, 'entity_decls': entity_decls}
-                part_append_genknode(node.kgen_parent, DECL_PART, stmt.__class__, attrs=attrs)
+                #attrs = {'type_spec': stmt.__class__.__name__.upper(), 'attrspec': attrspec, \
+                #    'selector':stmt.selector, 'entity_decls': [ 'kgenref_%s'%localout_name ]}
+                #    #'selector':stmt.selector, 'entity_decls': entity_decls}
+                #part_append_genknode(node.kgen_parent, DECL_PART, stmt.__class__, attrs=attrs)
 
         # for kernel - local variables
         is_class_derived = check_class_derived(stmt)
@@ -316,18 +315,12 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                         localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived array local input variable %s" % entity_name}))
                         #part_append_comment(node.kgen_parent, EXEC_PART, "derived array local input variable %s" % entity_name)
                         #VAR self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
-                        if subrname not in self.kernel_created_subrs:
-                            create_read_subr(subrname, entity_name, node.kgen_parent, var, stmt, ename_prefix=ename_prefix, allocate=local_allocate)
-                            self.kernel_created_subrs.append(subrname)
                     else: # intrinsic type
                         if var.is_explicit_shape_array():
                             if var.is_pointer():
                                 localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "array pointer local input variable %s" % entity_name}))
                                 #part_append_comment(node.kgen_parent, EXEC_PART, "array pointer local input variable %s" % entity_name)
                                 #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
-                                if subrname not in self.kernel_created_subrs:
-                                    create_read_subr(subrname, entity_name, node.kgen_parent, var, stmt, ename_prefix=ename_prefix, allocate=local_allocate)
-                                    self.kernel_created_subrs.append(subrname)
                             else:
                                 localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array local input variable %s" % entity_name}))
                                 #part_append_comment(node.kgen_parent, EXEC_PART, "explicit array local input variable %s" % entity_name)
@@ -336,18 +329,12 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                             localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "implicit array local input variable %s" % entity_name}))
                             #part_append_comment(node.kgen_parent, EXEC_PART, "implicit array local input variable %s" % entity_name)
                             #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
-                            if subrname not in self.kernel_created_subrs:
-                                create_read_subr(subrname, entity_name, node.kgen_parent, var, stmt, ename_prefix=ename_prefix, allocate=local_allocate)
-                                self.kernel_created_subrs.append(subrname)
                 else: # scalar
                     if stmt.is_derived() or is_class_derived or var.is_pointer():
                         if var.is_allocatable() or var.is_pointer():
                             localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer) local input variable %s" % entity_name}))
                             #part_append_comment(node.kgen_parent, EXEC_PART, "derived (or pointer) local input variable %s" % entity_name)
                             #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
-                            if subrname not in self.kernel_created_subrs:
-                                create_read_subr(subrname, entity_name, node.kgen_parent, var, stmt, ename_prefix=ename_prefix, allocate=local_allocate)
-                                self.kernel_created_subrs.append(subrname)
                         else:
                             subrname = None
                             for uname, req in stmt.unknowns.items():
@@ -369,38 +356,36 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                         #part_append_comment(node.kgen_parent, EXEC_PART, "intrinsic local input variable %s" % entity_name)
                         #self.create_read_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var, ename_prefix=ename_prefix)
 
-        # for kernel - argument variables
-        for entity_name, partid in argintype:
-            var = stmt.get_variable(entity_name)
-            subrname = get_typedecl_readname(stmt, entity_name)
-            if var.is_array():
-                self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                if subrname not in self.driver_created_subrs:
-                    create_read_subr(subrname, entity_name, shared_objects['driver_object'], var, stmt, allocate=True)
-                    self.driver_created_subrs.append(subrname)
-            else: # scalar
-                if stmt.is_derived() or is_class_derived or var.is_pointer():
-                    if var.is_allocatable() or var.is_pointer():
-                        self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
-                        if subrname not in self.kernel_created_subrs:
-                            create_read_subr(subrname, entity_name, node.kgen_parent, var, stmt, ename_prefix=ename_prefix)
-                            self.kernel_created_subrs.append(subrname)
-                    else:
-                        subrname = None
-                        for uname, req in stmt.unknowns.items():
-                            if uname.firstpartname()==stmt.name and len(req.res_stmts)>0:
-                                res = req.res_stmts[0]
-                                subrname = get_dtype_readname(res)
-                                break
-                        if subrname is None:
-                            print('WARNING: Can not find Type resolver for %s'%stmt.name)
-                            namedpart_append_comment(node.kgen_kernel_id, partid, \
-                                'ERROR: "%s" is not resolved. Call statements to read "%s" is not created here.'%\
-                                (stmt.name, stmt.name))
-                        else:
-                            self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                else: # intrinsic type
-                    self.create_read_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var)
+#        # for kernel - argument variables
+#        for entity_name, partid in argintype:
+#            var = stmt.get_variable(entity_name)
+#            subrname = get_typedecl_readname(stmt, entity_name)
+#            if var.is_array():
+#                pass
+#                #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
+#            else: # scalar
+#                if stmt.is_derived() or is_class_derived or var.is_pointer():
+#                    if var.is_allocatable() or var.is_pointer():
+#                        pass
+#                        #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
+#                    else:
+#                        subrname = None
+#                        for uname, req in stmt.unknowns.items():
+#                            if uname.firstpartname()==stmt.name and len(req.res_stmts)>0:
+#                                res = req.res_stmts[0]
+#                                subrname = get_dtype_readname(res)
+#                                break
+#                        if subrname is None:
+#                            print('WARNING: Can not find Type resolver for %s'%stmt.name)
+#                            namedpart_append_comment(node.kgen_kernel_id, partid, \
+#                                'ERROR: "%s" is not resolved. Call statements to read "%s" is not created here.'%\
+#                                (stmt.name, stmt.name))
+#                        else:
+#                            pass
+#                            #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
+#                else: # intrinsic type
+#                    pass
+#                    #self.create_read_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var)
 
     def create_subr_write_typedecl_in_parentblock(self, node):
         stmt = node.kgen_stmt
@@ -449,18 +434,12 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                         localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived array local output variable %s" % entity_name}))
                         #namedpart_append_comment(node.kgen_kernel_id, partid, "derived array local output variable %s" % entity_name)
                         #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                        if subrname not in self.state_created_subrs:
-                            create_write_subr(subrname, entity_name, node.kgen_parent, var, stmt)
-                            self.state_created_subrs.append(subrname)
                     else: # intrinsic type
                         if var.is_explicit_shape_array():
                             if vartypename=='argintype' or var.is_pointer():
                                 localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array (pointer) local output variable %s" % entity_name}))
                                 #namedpart_append_comment(node.kgen_kernel_id, partid, "explicit array (pointer) local output variable %s" % entity_name)
                                 #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                                if subrname not in self.state_created_subrs:
-                                    create_write_subr(subrname, entity_name, node.kgen_parent, var, stmt)
-                                    self.state_created_subrs.append(subrname)
                             else:
                                 localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array local output variable %s" % entity_name}))
                                 #namedpart_append_comment(node.kgen_kernel_id, partid, "explicit array local output variable %s" % entity_name)
@@ -469,18 +448,12 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                             localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "implicit array local output variable %s" % entity_name}))
                             #namedpart_append_comment(node.kgen_kernel_id, partid, "implicit array local output variable %s" % entity_name)
                             #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                            if subrname not in self.state_created_subrs:
-                                create_write_subr(subrname, entity_name, node.kgen_parent, var, stmt)
-                                self.state_created_subrs.append(subrname)
                 else: # scalar
                     if stmt.is_derived() or is_class_derived or var.is_pointer():
                         if var.is_allocatable() or var.is_pointer() or var.is_pointer():
                             localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer or allocatable) local output variable %s" % entity_name}))
                             #namedpart_append_comment(node.kgen_kernel_id, partid, "derived (or pointer or allocatable) local output variable %s" % entity_name)
                             #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
-                            if subrname not in self.state_created_subrs:
-                                create_write_subr(subrname, entity_name, node.kgen_parent, var, stmt)
-                                self.state_created_subrs.append(subrname)
                         else:
                             subrname = None
                             for uname, req in stmt.unknowns.items():
