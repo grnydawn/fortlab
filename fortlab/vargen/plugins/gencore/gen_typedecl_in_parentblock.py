@@ -8,9 +8,10 @@ from .gencore_utils import STATE_PBLOCK_WRITE_IN_ARGS, STATE_PBLOCK_WRITE_IN_LOC
     DRIVER_DECL_PART, DRIVER_USE_PART, get_typedecl_writename, get_dtype_writename, state_gencore_contains, \
     get_topname, get_typedecl_readname, get_dtype_readname, shared_objects, process_spec_stmts, is_zero_array, \
     is_excluded, is_remove_state, namedgen_read_istrue, namedgen_write_istrue, check_class_derived, localread, \
-    localwrite
+    localwrite, varstr
 
 class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
+
     def __init__(self):
         self.frame_msg = None
         self.state_created_subrs = []
@@ -31,8 +32,8 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
     def register(self, msg):
         self.frame_msg = msg
 
-        self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.STATE, GENERATION_STAGE.BEGIN_PROCESS, \
-            typedecl_statements.TypeDeclarationStatement, self.typedecl_has_state_parentblock, self.create_subr_write_typedecl_in_parentblock) 
+        #self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.STATE, GENERATION_STAGE.BEGIN_PROCESS, \
+        #    typedecl_statements.TypeDeclarationStatement, self.typedecl_has_state_parentblock, self.create_subr_write_typedecl_in_parentblock) 
 
         self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.KERNEL, GENERATION_STAGE.BEGIN_PROCESS, \
             typedecl_statements.TypeDeclarationStatement, self.typedecl_has_state_parentblock, self.create_subr_read_typedecl_in_parentblock) 
@@ -124,79 +125,82 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
             if is_remove_state(entity_name, stmt): continue
 
             if self.check_intent(entity_name, stmt):
-                if (entity_name,DRIVER_READ_IN_ARGS) not in argintype:
+                pass
+#                if (entity_name,DRIVER_READ_IN_ARGS) not in argintype:
+#
+#                    argintype.append((entity_name, DRIVER_READ_IN_ARGS))
+#
+#                    if not entity_name in getinfo('kernel_driver_callsite_args'):
+#                        getinfo('kernel_driver_callsite_args').append(entity_name)
+#
+#                    # add typedecl in driver
+#                    attrs={'type_spec':stmt.__class__.__name__.upper(), 'selector':stmt.selector, 'entity_decls': [entity_name]}
+#                    attrspec = []
+#                    if var.is_array():
+#                        attrspec.append('DIMENSION(%s)'%','.join(':'*var.rank))
+#                        if not var.is_pointer(): attrspec.append('ALLOCATABLE')
+#                        # deallocate
+#                    if var.is_pointer(): attrspec.append('POINTER')
+#                    attrs['attrspec'] = attrspec 
+#                    namedpart_append_genknode(node.kgen_kernel_id, DRIVER_DECL_PART, stmt.__class__, attrs=attrs)
+#
+#                    if hasattr(stmt, 'unknowns'):
+#                        # if stmt has identifiers that are resolved else where
+#                        for uname, req in stmt.unknowns.items():
+#                            # per each resolutions
+#                            if len(req.res_stmts)>0:
+#                                # check if resolving stmts exist
+#                                if req.res_stmts[-1].__class__==statements.Use:
+#                                    # if the last resolving stmt is Use stmt
+#                                    checks = lambda n: n.kgen_match_class==statements.Use and n.kgen_stmt and n.kgen_stmt.name==req.res_stmts[-1].name \
+#                                        and ( n.kgen_stmt.isonly and uname.firstpartname() in [ item.split('=>')[0].strip() for item in n.kgen_stmt.items])
+#                                    if not namedpart_has_node(node.kgen_kernel_id, DRIVER_USE_PART, checks):
+#                                        item_name = uname.firstpartname()
+#                                        for new_name, old_name in req.res_stmts[-1].renames:
+#                                            if new_name==item_name:
+#                                                item_name = '%s => %s'%(new_name, old_name) 
+#                                                break
+#                                        if not (req.res_stmts[-1].name, item_name) in self.driver_created_uses:
+#                                            attrs = {'name':req.res_stmts[-1].name, 'isonly': True, 'items':[item_name]}
+#                                            namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
+#                                            self.driver_created_uses.append((req.res_stmts[-1].name, item_name))
+#
+#                                        if stmt.is_derived() and stmt.name==uname.firstpartname():
+#                                            readname = get_dtype_readname(req.res_stmts[0])
+#                                            if not (req.res_stmts[-1].name, readname) in self.driver_created_uses:
+#                                                attrs = {'name':req.res_stmts[-1].name, 'isonly': True, 'items':[readname]}
+#                                                namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
+#                                                self.driver_created_uses.append((req.res_stmts[-1].name, readname))
+#
+#                                else:
+#                                    # else if the last resolving stmt is not Use stmt
+#                                    if req.res_stmts[0].genkpair.kgen_parent!=node.kgen_parent:
+#                                        # no need to handle if requesting and revolving stmts has the same parent node
+#                                        checks = lambda n: n.kgen_match_class==statements.Use and n.kgen_stmt and n.kgen_stmt.name==get_topname(req.res_stmts[-1]) and \
+#                                            ( n.kgen_stmt.isonly and uname.firstpartname() in [ item.split('=>')[0].strip() for item in n.kgen_stmt.items])
+#                                        # check if there exist node that is 1) Use stmt, 2) has kgen_stmt attr, 3) has the same name to top name of the last resolving stmt, 
+#                                        # and uname in a list of use only items
+#                                        if not namedpart_has_node(node.kgen_kernel_id, DRIVER_USE_PART, checks):
+#                                            item_name = uname.firstpartname()
+#                                            #for new_name, old_name in req.res_stmts[-1].renames:
+#                                            #    if new_name==item_name:
+#                                            #        item_name = '%s => %s'%(new_name, old_name) 
+#                                            #        break
+#                                            if not (get_topname(req.res_stmts[-1]), item_name) in self.driver_created_uses:
+#                                                attrs = {'name':get_topname(req.res_stmts[-1]), 'isonly': True, 'items':[item_name]}
+#                                                namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
+#                                                self.driver_created_uses.append((get_topname(req.res_stmts[-1]), item_name))
+#
+#                                            if stmt.is_derived() and stmt.name==uname.firstpartname():
+#                                                readname = get_dtype_readname(req.res_stmts[-1])
+#                                                if not (get_topname(req.res_stmts[-1]), readname) in self.driver_created_uses:
+#                                                    attrs = {'name':get_topname(req.res_stmts[-1]), 'isonly': True, 'items':[readname]}
+#                                                    namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
+#                                                    self.driver_created_uses.append((get_topname(req.res_stmts[-1]), readname))
 
-                    argintype.append((entity_name, DRIVER_READ_IN_ARGS))
-
-                    if not entity_name in getinfo('kernel_driver_callsite_args'):
-                        getinfo('kernel_driver_callsite_args').append(entity_name)
-
-                    # add typedecl in driver
-                    attrs={'type_spec':stmt.__class__.__name__.upper(), 'selector':stmt.selector, 'entity_decls': [entity_name]}
-                    attrspec = []
-                    if var.is_array():
-                        attrspec.append('DIMENSION(%s)'%','.join(':'*var.rank))
-                        if not var.is_pointer(): attrspec.append('ALLOCATABLE')
-                        # deallocate
-                    if var.is_pointer(): attrspec.append('POINTER')
-                    attrs['attrspec'] = attrspec 
-                    namedpart_append_genknode(node.kgen_kernel_id, DRIVER_DECL_PART, stmt.__class__, attrs=attrs)
-
-                    if hasattr(stmt, 'unknowns'):
-                        # if stmt has identifiers that are resolved else where
-                        for uname, req in stmt.unknowns.items():
-                            # per each resolutions
-                            if len(req.res_stmts)>0:
-                                # check if resolving stmts exist
-                                if req.res_stmts[-1].__class__==statements.Use:
-                                    # if the last resolving stmt is Use stmt
-                                    checks = lambda n: n.kgen_match_class==statements.Use and n.kgen_stmt and n.kgen_stmt.name==req.res_stmts[-1].name \
-                                        and ( n.kgen_stmt.isonly and uname.firstpartname() in [ item.split('=>')[0].strip() for item in n.kgen_stmt.items])
-                                    if not namedpart_has_node(node.kgen_kernel_id, DRIVER_USE_PART, checks):
-                                        item_name = uname.firstpartname()
-                                        for new_name, old_name in req.res_stmts[-1].renames:
-                                            if new_name==item_name:
-                                                item_name = '%s => %s'%(new_name, old_name) 
-                                                break
-                                        if not (req.res_stmts[-1].name, item_name) in self.driver_created_uses:
-                                            attrs = {'name':req.res_stmts[-1].name, 'isonly': True, 'items':[item_name]}
-                                            namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
-                                            self.driver_created_uses.append((req.res_stmts[-1].name, item_name))
-
-                                        if stmt.is_derived() and stmt.name==uname.firstpartname():
-                                            readname = get_dtype_readname(req.res_stmts[0])
-                                            if not (req.res_stmts[-1].name, readname) in self.driver_created_uses:
-                                                attrs = {'name':req.res_stmts[-1].name, 'isonly': True, 'items':[readname]}
-                                                namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
-                                                self.driver_created_uses.append((req.res_stmts[-1].name, readname))
-
-                                else:
-                                    # else if the last resolving stmt is not Use stmt
-                                    if req.res_stmts[0].genkpair.kgen_parent!=node.kgen_parent:
-                                        # no need to handle if requesting and revolving stmts has the same parent node
-                                        checks = lambda n: n.kgen_match_class==statements.Use and n.kgen_stmt and n.kgen_stmt.name==get_topname(req.res_stmts[-1]) and \
-                                            ( n.kgen_stmt.isonly and uname.firstpartname() in [ item.split('=>')[0].strip() for item in n.kgen_stmt.items])
-                                        # check if there exist node that is 1) Use stmt, 2) has kgen_stmt attr, 3) has the same name to top name of the last resolving stmt, 
-                                        # and uname in a list of use only items
-                                        if not namedpart_has_node(node.kgen_kernel_id, DRIVER_USE_PART, checks):
-                                            item_name = uname.firstpartname()
-                                            #for new_name, old_name in req.res_stmts[-1].renames:
-                                            #    if new_name==item_name:
-                                            #        item_name = '%s => %s'%(new_name, old_name) 
-                                            #        break
-                                            if not (get_topname(req.res_stmts[-1]), item_name) in self.driver_created_uses:
-                                                attrs = {'name':get_topname(req.res_stmts[-1]), 'isonly': True, 'items':[item_name]}
-                                                namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
-                                                self.driver_created_uses.append((get_topname(req.res_stmts[-1]), item_name))
-
-                                            if stmt.is_derived() and stmt.name==uname.firstpartname():
-                                                readname = get_dtype_readname(req.res_stmts[-1])
-                                                if not (get_topname(req.res_stmts[-1]), readname) in self.driver_created_uses:
-                                                    attrs = {'name':get_topname(req.res_stmts[-1]), 'isonly': True, 'items':[readname]}
-                                                    namedpart_append_genknode(node.kgen_kernel_id, DRIVER_USE_PART, statements.Use, attrs=attrs)
-                                                    self.driver_created_uses.append((get_topname(req.res_stmts[-1]), readname))
             elif (entity_name,KERNEL_PBLOCK_READ_IN_LOCALS) not in localintype and (entity_name,DRIVER_READ_IN_ARGS) not in argintype:
                 localintype.append((uname.firstpartname(), KERNEL_PBLOCK_READ_IN_LOCALS))
+
         for uname, req in KGGenType.get_state_out(stmt.geninfo):
             entity_name = uname.firstpartname()
             var = stmt.get_variable(entity_name)
@@ -303,6 +307,9 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
         # for kernel - local variables
         is_class_derived = check_class_derived(stmt)
         for vartypename, vartype in localvartypes.items():
+
+            locallist = localread if vartypename == "localintype" else localwrite
+
             for entity_name, partid in vartype:
                 if vartypename=='localouttype': ename_prefix = 'kgenref_'
                 else: ename_prefix = ''
@@ -312,27 +319,27 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                     if is_zero_array(var, stmt): continue
                     if stmt.is_derived() or is_class_derived:
 
-                        localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived array local input variable %s" % entity_name}))
+                        locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived array")}))
                         #part_append_comment(node.kgen_parent, EXEC_PART, "derived array local input variable %s" % entity_name)
                         #VAR self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
                     else: # intrinsic type
                         if var.is_explicit_shape_array():
                             if var.is_pointer():
-                                localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "array pointer local input variable %s" % entity_name}))
+                                locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "array pointer")}))
                                 #part_append_comment(node.kgen_parent, EXEC_PART, "array pointer local input variable %s" % entity_name)
                                 #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
                             else:
-                                localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array local input variable %s" % entity_name}))
+                                locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "explicit array")}))
                                 #part_append_comment(node.kgen_parent, EXEC_PART, "explicit array local input variable %s" % entity_name)
                                 #self.create_read_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var, ename_prefix=ename_prefix)
                         else: # implicit array
-                            localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "implicit array local input variable %s" % entity_name}))
+                            locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "implicit array")}))
                             #part_append_comment(node.kgen_parent, EXEC_PART, "implicit array local input variable %s" % entity_name)
                             #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
                 else: # scalar
                     if stmt.is_derived() or is_class_derived or var.is_pointer():
                         if var.is_allocatable() or var.is_pointer():
-                            localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer) local input variable %s" % entity_name}))
+                            locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived (or pointer or allocatable)")}))
                             #part_append_comment(node.kgen_parent, EXEC_PART, "derived (or pointer) local input variable %s" % entity_name)
                             #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
                         else:
@@ -348,11 +355,11 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                                     'ERROR: "%s" is not resolved. Call statements to read "%s" is not created here.'%\
                                     (stmt.name, stmt.name))
                             else:
-                                localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer) local input variable %s" % entity_name}))
+                                locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived")}))
                                 #part_append_comment(node.kgen_parent, EXEC_PART, "derived (or pointer) local input variable %s" % entity_name)
                                 #self.create_read_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var, ename_prefix=ename_prefix)
                     else: # intrinsic type
-                        localread.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "intrinsic local input variable %s" % entity_name}))
+                        locallist.append(genkobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "intrinsic")}))
                         #part_append_comment(node.kgen_parent, EXEC_PART, "intrinsic local input variable %s" % entity_name)
                         #self.create_read_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var, ename_prefix=ename_prefix)
 
@@ -431,27 +438,27 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                 if var.is_array():
                     if is_zero_array(var, stmt): continue
                     if stmt.is_derived() or is_class_derived:
-                        localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived array local output variable %s" % entity_name}))
+                        localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived array")}))
                         #namedpart_append_comment(node.kgen_kernel_id, partid, "derived array local output variable %s" % entity_name)
                         #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
                     else: # intrinsic type
                         if var.is_explicit_shape_array():
                             if vartypename=='argintype' or var.is_pointer():
-                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array (pointer) local output variable %s" % entity_name}))
+                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "explicit array (or pointer)")}))
                                 #namedpart_append_comment(node.kgen_kernel_id, partid, "explicit array (pointer) local output variable %s" % entity_name)
                                 #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
                             else:
-                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "explicit array local output variable %s" % entity_name}))
+                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "explicit array")}))
                                 #namedpart_append_comment(node.kgen_kernel_id, partid, "explicit array local output variable %s" % entity_name)
                                 #self.create_write_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var)
                         else: # implicit array
-                            localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "implicit array local output variable %s" % entity_name}))
+                            localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "implicit array")}))
                             #namedpart_append_comment(node.kgen_kernel_id, partid, "implicit array local output variable %s" % entity_name)
                             #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
                 else: # scalar
                     if stmt.is_derived() or is_class_derived or var.is_pointer():
                         if var.is_allocatable() or var.is_pointer() or var.is_pointer():
-                            localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer or allocatable) local output variable %s" % entity_name}))
+                            localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived (or pointer or allocatable)")}))
                             #namedpart_append_comment(node.kgen_kernel_id, partid, "derived (or pointer or allocatable) local output variable %s" % entity_name)
                             #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
                         else:
@@ -467,14 +474,10 @@ class Gen_Typedecl_In_Parentblock(Kgen_Plugin):
                                     'ERROR: "%s" is not resolved. Call statements to write "%s" is not created here.'%\
                                     (stmt.name, stmt.name))
                             else:
-                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "derived (or pointer) intrinsic local output variable %s" % entity_name}))
-                                #namedpart_append_comment(node.kgen_kernel_id, partid, "derived (or pointer) intrinsic local output variable %s" % entity_name)
-                                #self.create_write_call(node.kgen_kernel_id, partid, subrname, entity_name, stmt, var)
+                                localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "derived")}))
 
                     else: # intrinsic type
-                        localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": "intrinsic local output variable %s" % entity_name}))
-                        #namedpart_append_comment(node.kgen_kernel_id, partid, "intrinsic local output variable %s" % entity_name)
-                        #self.create_write_intrinsic(node.kgen_kernel_id, partid, entity_name, stmt, var)
+                        localwrite.append(gensobj(node, statements.Comment, node.kgen_kernel_id, attrs={"comment": varstr(entity_name, "intrinsic")}))
 
     def create_read_intrinsic(self, kernel_id, partid, entity_name, stmt, var, ename_prefix=''):
 

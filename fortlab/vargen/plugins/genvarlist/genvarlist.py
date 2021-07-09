@@ -34,16 +34,18 @@ class GenVar(Kgen_Plugin):
                 for uname, res in gendata:
                     call = ":".join(uname.namelist[:-1])
                     line = str(uname.stmt.item.span)
-                    cmt = "called from \"%s\" near line %s" % (call, line)
+                    cmt = "referenced at \"%s\" near original source line %s" % (call, line)
                     part_insert_comment(node.kgen_parent, name, idx, cmt)
 
         part_insert_comment(node.kgen_parent, name, idx, "")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "This subprogram is called from following callsites:")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
 
 
     def create_callsite_varlist(self, node):
-
+  
         idx, name, part = get_part_index(node)
 
         # VAR
@@ -53,7 +55,9 @@ class GenVar(Kgen_Plugin):
                 #part_append_node(node.kgen_parent, name, stmt)
                 part_insert_node(node.kgen_parent, name, idx, stmt)
 
-        part_insert_comment(node.kgen_parent, name, idx, "External input variables used in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
+        part_insert_comment(node.kgen_parent, name, idx, "External variables possibly used for calculating value(s) for other variable(s)")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
 
         for outsubr in getinfo("modwritesubrs").values():
@@ -61,19 +65,25 @@ class GenVar(Kgen_Plugin):
                 #part_append_node(node.kgen_parent, name, stmt)
                 part_insert_node(node.kgen_parent, name, idx, stmt)
 
-        part_insert_comment(node.kgen_parent, name, idx, "External output variables used in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
+        part_insert_comment(node.kgen_parent, name, idx, "External variables possibly being modified in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
 
         for stmt in getinfo("localread"):
             part_insert_node(node.kgen_parent, name, idx, stmt)
 
-        part_insert_comment(node.kgen_parent, name, idx, "Local input variables used in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
+        part_insert_comment(node.kgen_parent, name, idx, "Local variables possibly used for calculating value(s) for other variable(s)")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
 
         for stmt in getinfo("localwrite"):
             part_insert_node(node.kgen_parent, name, idx, stmt)
 
-        part_insert_comment(node.kgen_parent, name, idx, "Local output variables used in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
+        part_insert_comment(node.kgen_parent, name, idx, "Local variables possibly being modified in the following part")
+        part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
 
 

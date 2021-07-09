@@ -13,6 +13,14 @@ from fortlab.resolver import statements
 SRCROOT = os.path.dirname(os.path.realpath(__file__))
 KGEN_MACHINE = '%s/../machines'%SRCROOT
 
+class MpiModule(object):
+
+    def __init__(self, header):
+        self.header = header
+
+    def resolve(self, request, config):
+        pass
+
 def get_MPI_PARAM(node, bag, depth):
     from fortlab.resolver.Fortran2003 import Specification_Part, Type_Declaration_Stmt, Entity_Decl, Parameter_Stmt, Named_Constant_Def, \
         NoMatchError, Module_Stmt, Program_Stmt, Named_Constant_Def_List
@@ -178,6 +186,9 @@ class FortranNameResolver(App):
         self.config['search']['skip_intrinsic'] = True
         self.config['search']['except'] = []
         self.config['search']['promote_exception'] = False
+
+        # resolver parameters
+        self.config['custom_resolvers'] = {}
 
         # exclude parameters
         self.config['exclude'] = OrderedDict()
@@ -868,6 +879,11 @@ class FortranNameResolver(App):
         if opts.mpi:
             self.config['mpi']['enabled'] = True
 
+            if "module" not in self.config["custom_resolvers"]:
+                self.config["custom_resolvers"]["module"] = {}
+            if "mpi" not in self.config["custom_resolvers"]["module"]:
+                self.config["custom_resolvers"]["module"]["mpi"] = False
+
             for line in opts.mpi:
                 line = line["_"]
                 for mpi in line.split(','):
@@ -887,8 +903,13 @@ class FortranNameResolver(App):
                             #self.config['mpi']['size'] = len(self.config['mpi'][key])
                         elif key=='header':
                             self.config['mpi'][key] = value
+                        elif key=='build_resolver':
+                            if value.lower() in ["true", "yes"]:
+                                self.config["custom_resolvers"]["module"]["mpi"] = \
+                                MpiModule(self.config["mpi"]["header"])
                         else:
                             raise UserException('Unknown MPI option: %s' % mpi)
+
         # parsing kernel makefile parameters
         if opts.prerun:
             for line in opts.prerun:

@@ -1466,6 +1466,9 @@ class Use(Statement):
                             os.path.basename(request.originator.reader.id)))
 
                         self.module = src.tree.a.module[self.name]
+                    elif "module" in config["custom_resolvers"] and \
+                        self.name in config["custom_resolvers"]["module"]:
+                        self.module = config["custom_resolvers"]["module"][self.name]
                     else:
                         raise UserException("Module, %s, is not found at %s. "
                             "Please check include paths for searching module "

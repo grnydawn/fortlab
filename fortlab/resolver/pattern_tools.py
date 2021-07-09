@@ -335,7 +335,8 @@ abs_access_spec = abs(access_spec)
 implicit_none = Pattern('<implicit-none>',r'IMPLICIT\s*NONE',flags=re.I, value='IMPLICIT NONE')
 abs_implicit_none = abs(implicit_none)
 
-attr_spec = Pattern('<attr-spec>',r'ALLOCATABLE|ASYNCHRONOUS|EXTERNAL|INTENT|INTRINSIC|OPTIONAL|PARAMETER|POINTER|PROTECTED|SAVE|TARGET|VALUE|VOLATILE',flags=re.I)
+# attr_spec = Pattern('<attr-spec>',r'ALLOCATABLE|ASYNCHRONOUS|EXTERNAL|INTENT|INTRINSIC|OPTIONAL|PARAMETER|POINTER|PROTECTED|SAVE|TARGET|VALUE|VOLATILE',flags=re.I) KGEN DELETION
+attr_spec = Pattern('<attr-spec>',r'ALLOCATABLE|ASYNCHRONOUS|EXTERNAL|INTENT|INTRINSIC|OPTIONAL|PARAMETER|POINTER|PROTECTED|SAVE|TARGET|VALUE|VOLATILE|CONTIGUOUS',flags=re.I) # KGEN ADDITION
 abs_attr_spec = abs(attr_spec)
 
 dimension = Pattern('<dimension>',r'DIMENSION', flags=re.I)

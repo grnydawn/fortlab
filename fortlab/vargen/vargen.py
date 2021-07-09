@@ -121,12 +121,6 @@ class FortranVariableAnalyzer(App):
         init_plugins([KERNEL_ID_0], plugins, self.config)
         plugin_config["current"].update(self.config)
 
-        driver = create_rootnode(KERNEL_ID_0)
-        self._trees.append(driver)
-        program = create_programnode(driver, KERNEL_ID_0)
-        program.name = self.config["kernel_driver"]["name"]
-        append_program_in_root(driver, program)
-
         for filepath, (srcobj, mods_used, units_used) in self.config[
             "srcfiles"].items():
             if hasattr(srcobj.tree, "geninfo") and KGGenType.has_state(
@@ -203,39 +197,7 @@ class FortranVariableAnalyzer(App):
                 ) as (fd):
                     fd.write(tounicode(klines))
 
-        with io.open(
-            os.path.join(
-                kernel_realpath, "%s.f90" % self.config["kernel_driver"]["name"]
-            ),
-            "w",
-            encoding=enc,
-        ) as (fd):
-            set_indent("")
-            lines = driver.tostring()
-            if lines is not None:
-                lines = remove_multiblanklines(lines)
-                fd.write(tounicode(lines))
-
-        kernel_files.append(self.config["kernel"]["name"])
-        kernel_files.append(KGUTIL)
-        self.generate_kgen_utils(kernel_realpath, enc)
-
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
 
         return
-
-    def generate_kgen_utils(self, kernel_path, enc):
-        with io.open(os.path.join(kernel_path, KGUTIL), "w", encoding=enc) as (f):
-            f.write(tounicode("MODULE kgen_utils_mod"))
-            f.write(tounicode(kgen_utils_file_head))
-            f.write(tounicode("\n"))
-            f.write(tounicode("CONTAINS"))
-            f.write(tounicode("\n"))
-            f.write(tounicode(kgen_utils_array_sumcheck))
-            f.write(tounicode(kgen_utils_file_tostr))
-            f.write(tounicode(kgen_utils_file_checksubr))
-            f.write(tounicode(kgen_get_newunit))
-            f.write(tounicode(kgen_error_stop))
-            f.write(tounicode(kgen_rankthread))
-            f.write(tounicode("END MODULE kgen_utils_mod\n"))

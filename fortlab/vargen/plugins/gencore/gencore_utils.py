@@ -108,6 +108,13 @@ vprefix = 'kv'
 
 MAXLEN_SUBPNAME =40
 
+def varstr(name, attrstr, at=None): 
+
+    if at is not None:
+        return "%s : %s at %s" % (name, attrstr, at)
+    else:
+        return "%s : %s" % (name, attrstr)
+
 def get_ancestor_name(stmt, generation):
     assert stmt and hasattr(stmt, 'parent'), 'Given stmt does not have parent attribute.'
     assert isinstance(generation, int), 'Not integer type of generation.'

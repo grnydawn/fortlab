@@ -299,7 +299,7 @@ class Variable(object):
     known_attributes = ['PUBLIC', 'PRIVATE', 'ALLOCATABLE', 'ASYNCHRONOUS',
                         'EXTERNAL', 'INTRINSIC', 'OPTIONAL', 'PARAMETER',
                         'POINTER', 'PROTECTED', 'SAVE', 'TARGET', 'VALUE',
-                        'VOLATILE', 'REQUIRED', 'DEFERRED'] # KGEN addition
+                        'VOLATILE', 'REQUIRED', 'DEFERRED', 'CONTINUOUS'] # KGEN addition
                         #'VOLATILE', 'REQUIRED'] # KGEN deletion
 
     def is_intent_in(self):
@@ -375,6 +375,7 @@ class Variable(object):
     def is_optional(self): return 'OPTIONAL' in self.attributes and 'REQUIRED' not in self.attributes and not self.is_intent_hide()
     def is_required(self): return self.is_optional() and not self.is_intent_hide()
     def is_pointer(self): return 'POINTER' in self.attributes
+    def is_contiguous(self): return 'CONTIGUOUS' in self.attributes # KGen addition
 
     def is_array(self): return not not (self.bounds or self.dimension)
     def is_scalar(self): return not self.is_array()

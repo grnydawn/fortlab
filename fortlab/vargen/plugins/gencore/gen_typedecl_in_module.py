@@ -9,7 +9,7 @@ from .gencore_utils import get_topname, get_typedecl_writename, get_dtype_writen
     STATE_PBLOCK_USE_PART, kernel_gencore_contains, state_gencore_contains, get_typedecl_readname, get_dtype_readname, get_module_in_readname, \
     KERNEL_PBLOCK_USE_PART, DRIVER_READ_IN_EXTERNS, process_spec_stmts, get_module_out_writename, get_module_out_readname, \
     KERNEL_PBLOCK_READ_OUT_EXTERNS, STATE_PBLOCK_WRITE_OUT_EXTERNS, gen_write_istrue, gen_read_istrue, is_excluded, \
-    is_remove_state, is_zero_array, DRIVER_USE_PART, check_class_derived, modreadsubrs, modwritesubrs
+    is_remove_state, is_zero_array, DRIVER_USE_PART, check_class_derived, modreadsubrs, modwritesubrs, varstr
 
 class Gen_Typedecl_In_Module(Kgen_Plugin):
     def __init__(self):
@@ -395,16 +395,16 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
             if var.is_array():
                 if is_zero_array(var, stmt): continue
                 if stmt.is_derived() or is_class_derived:
-                    part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                    part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "derived array", at=node.kgen_parent.name))
                 else: # intrinsic type
                     if var.is_explicit_shape_array():
-                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "explicit array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "explicit array", at=node.kgen_parent.name))
                     else: # implicit array
-                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "intrinsic array input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "intrinsic array", at=node.kgen_parent.name))
             else: # scalar
                 if stmt.is_derived() or is_class_derived:
                     if var.is_allocatable() or var.is_pointer():
-                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived allocatable(or pointer) input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                        part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "derived allocatable(or pointer)", at=node.kgen_parent.name))
                     else:
                         subrname = None
                         for uname, req in stmt.unknowns.items():
@@ -420,9 +420,9 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                                 'ERROR: "%s" is not resolved. Call statements to read "%s" is not created here.'%\
                                 (stmt.name, stmt.name))
                         else:
-                            part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "derived input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                            part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "derived", at=node.kgen_parent.name))
                 else: # intrinsic type
-                    part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, "intrinsic input variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                    part_append_comment(self.kernel_externs_subrs[node.kgen_parent][0], EXEC_PART, varstr(entity_name, "intrinsic", at=node.kgen_parent.name))
 
     def create_subr_write_typedecl_in_module(self, node):
         parent = node.kgen_parent
@@ -452,19 +452,19 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                 if is_zero_array(var, stmt): continue
                 if stmt.is_derived() or is_class_derived:
                     if entity_name in out_entity_names:
-                        part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                        part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "derived array", at=node.kgen_parent.name))
                 else: # intrinsic type
                     if var.is_explicit_shape_array():
                         if entity_name in out_entity_names:
-                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "explicit array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "explicit array", at=node.kgen_parent.name))
                     else: # implicit array
                         if entity_name in out_entity_names:
-                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "implicit array output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "implicit array", at=node.kgen_parent.name))
             else: # scalar
                 if stmt.is_derived() or is_class_derived:
                     if var.is_allocatable() or var.is_pointer():
                         if entity_name in out_entity_names:
-                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived allocatable (or pointer) output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                            part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "derived allocatable (or pointer)", at=node.kgen_parent.name))
                     else:
                         subrname = None
                         for uname, req in stmt.unknowns.items():
@@ -481,8 +481,8 @@ class Gen_Typedecl_In_Module(Kgen_Plugin):
                                 (stmt.name, stmt.name))
                         else:
                             if entity_name in out_entity_names:
-                                part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "derived output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                                part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "derived", at=node.kgen_parent.name))
                 else: # intrinsic type
                     if entity_name in out_entity_names:
-                        part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, "intrinsic output variable %s in module %s" % (entity_name, node.kgen_parent.name))
+                        part_append_comment(self.state_externs_subrs[node.kgen_parent][1], EXEC_PART, varstr(entity_name, "intrinsic", at=node.kgen_parent.name))
 

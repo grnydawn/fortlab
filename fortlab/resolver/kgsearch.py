@@ -605,19 +605,18 @@ def search_Declaration_Type_Spec(stmt, node, config, gentype=None):
 def search_Data_Ref(stmt, node, config, gentype=None):
     """ Identifying a name in Data_Ref node"""
     from fortlab.kgutils import KGName
-    from fortlab.resolver.Fortran2003 import Name, Part_Ref
 
     # NOTE: to limit the scope of data saving in derived type,
     #       the last part_ref would be the one that has config, gentype=gentype
-    if isinstance(node.items[0], Name):
+    if isinstance(node.items[0], Fortran2003.Name):
         get_name_or_defer(stmt, node.items[0], res_value, config, gentype=gentype)
-    elif isinstance(node.items[0], Part_Ref):
+    elif isinstance(node.items[0], Fortran2003.Part_Ref):
         get_name_or_defer(stmt, node.items[0].items[0], res_value, config, gentype=gentype) 
         get_name_or_defer(stmt, node.items[0].items[1], res_value, config) 
 
     for item in node.items[1:]:
-        if isinstance(item, Name): pass
-        elif isinstance(item, Part_Ref):
+        if isinstance(item, Fortran2003.Name): pass
+        elif isinstance(item, Fortran2003.Part_Ref):
             get_name_or_defer(stmt, item.items[1], res_value, config)
         elif item is None: pass
         else: raise ProgramException('Unknown type: %s'%item.__class)
@@ -1000,11 +999,10 @@ def search_Actual_Arg_Spec(stmt, node, config, gentype=None):
 
 def search_Data_Pointer_Object(stmt, node, config, gentype=None):
     """ Identifying a name in Data_Pointer_Object node"""
-    from Fortran2003 import Name
 
     get_name_or_defer(stmt, node.items[0], res_value, config, gentype=gentype)
 
-    if node.items[2] and not isinstance(node.items[2], Name):
+    if node.items[2] and not isinstance(node.items[2], Fortran2003.Name):
         get_name_or_defer(stmt, node.items[2], res_value, config)
 
 def search_Type_Attr_Spec(stmt, node, config, gentype=None):
