@@ -111,7 +111,7 @@ MAXLEN_SUBPNAME =40
 def varstr(name, attrstr, at=None): 
 
     if at is not None:
-        return "%s : %s at %s" % (name, attrstr, at)
+        return "%s : %s at module %s" % (name, attrstr, at)
     else:
         return "%s : %s" % (name, attrstr)
 
