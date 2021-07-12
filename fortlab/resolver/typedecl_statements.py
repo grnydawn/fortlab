@@ -736,7 +736,7 @@ class Implicit(Statement):
             l.append('%s ( %s )' % (stmt.tostr(), ', '.join(l1)))
         return 'IMPLICIT ' + ', '.join(l)
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         self.add_geninfo(uname, request)
         if self.items:
             raise ProgramException('Custom Implicit Rule is not supported yet.')

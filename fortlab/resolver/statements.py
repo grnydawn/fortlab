@@ -101,7 +101,7 @@ class StatementWithNamelist(Statement):
             s = ' ' + s
         return clsname + s
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         for item in self.items:
             if any(elem in item for elem in r'-=>'):
                 print('DEBUG: %s has non-ascii character.'%self.__class__)
@@ -786,7 +786,7 @@ class Contains(Statement):
     def tokgen(self):
         return 'CONTAINS'
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         from fortlab.resolver.block_statements import SubProgramStatement
         if isinstance(request.res_stmts[-1], SubProgramStatement):
             self.add_geninfo(uname, request)
@@ -988,7 +988,7 @@ class Access(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         if not self.items or uname.firstpartname() in self.items:
             self.add_geninfo(uname, request)
     # end of KGEN addition
@@ -1229,7 +1229,7 @@ class Save(Statement):
             return 'SAVE'
         return 'SAVE %s' % (', '.join(items))
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         from fortlab.kgutils import KGName
         if hasattr(self, 'items'):
             if self.items:
@@ -1643,7 +1643,7 @@ class Parameter(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         from fortlab.resolver.kgsearch import f2003_search_unknowns
         from fortlab.resolver.kgparse import ResState
 
@@ -1665,7 +1665,7 @@ class Parameter(Statement):
 
             if node:
                 if not hasattr(self, 'unknowns') or len(self.unknowns)==0:
-                    f2003_search_unknowns(self, node.items[1])
+                    f2003_search_unknowns(self, node.items[1], config)
                     for unknown, request in self.unknowns.items():
                         if request.state != ResState.RESOLVED:
                             self.resolve(request)
@@ -1707,7 +1707,7 @@ class Equivalence(Statement):
 
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         def get_equivname(node, bag, depth):
             from fortlab.resolver.Fortran2003 import Equivalence_Object_List, Equivalence_Set, Name
             if isinstance(node, Name) and node.string==uname.firstpartname():
@@ -1773,7 +1773,7 @@ class Dimension(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):
@@ -1826,7 +1826,7 @@ class Target(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):
@@ -1874,7 +1874,7 @@ class Pointer(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):
@@ -2176,7 +2176,7 @@ class Common(Statement):
                 l.append(s)
         return 'COMMON ' + ' '.join(l)
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         if self.items:
             for bname, vname in self.items:
                 if uname.firstpartname()==bname: 
@@ -2245,7 +2245,7 @@ class Intent(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):
@@ -2573,7 +2573,7 @@ class Allocatable(Statement):
         return
 
     # start of KGEN addition
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):
@@ -2631,7 +2631,7 @@ class Bind(Statement):
             self.parent.spec_stmts = []
         self.parent.spec_stmts.append(self)
 
-    def resolve_uname(self, uname, request):
+    def resolve_uname(self, uname, request, config):
         pass
 
     def tokgen(self):

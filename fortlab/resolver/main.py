@@ -530,7 +530,7 @@ class FortranNameResolver(App):
             if prevname:
                 dummy_req = kgparse.ResState(kgparse.KGGenType.STATE_IN, KGName(prevname), None, [anc])
                 dummy_req.res_stmts = [ prevstmt ]
-                anc.check_spec_stmts(dummy_req.uname, dummy_req)
+                anc.check_spec_stmts(dummy_req.uname, dummy_req, self.config)
 
             if hasattr(anc, 'name'): prevname = anc.name
             else: prevname = None

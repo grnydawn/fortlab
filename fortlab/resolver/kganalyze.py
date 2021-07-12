@@ -168,7 +168,7 @@ def analyze_callsite(config):
         if prevname:
             dummy_req = ResState(KGGenType.STATE_IN, KGName(prevname), None, [anc])
             dummy_req.res_stmts = [ prevstmt ]
-            anc.check_spec_stmts(dummy_req.uname, dummy_req)
+            anc.check_spec_stmts(dummy_req.uname, dummy_req, config)
 
         if hasattr(anc, 'name'): prevname = anc.name
         else: prevname = None

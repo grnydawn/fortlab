@@ -2,7 +2,7 @@
 
 #import os 
 from fortlab.resolver import statements, block_statements, typedecl_statements
-from fortlab.resolver.block_statements import SubProgramStatement, Function, Subroutine
+from fortlab.resolver.block_statements import SubProgramStatement, Function, Subroutine, Module
 from fortlab.resolver.kgparse import KGGenType
 from fortlab.kgplugin import Kgen_Plugin
 
@@ -23,6 +23,28 @@ class GenVar(Kgen_Plugin):
         self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.KERNEL, GENERATION_STAGE.FINISH_PROCESS, \
             SubProgramStatement, None, self.create_subp_varlist)
 
+        self.frame_msg.add_event(KERNEL_SELECTION.ALL, FILE_TYPE.KERNEL, GENERATION_STAGE.FINISH_PROCESS, \
+            Module, None, self.create_module_varlist)
+
+    def create_module_varlist(self, node):
+
+        for typedecl in node.kgen_stmt.typedecl_resolvers:
+            for uname, req in KGGenType.get_state_in(typedecl.geninfo):
+                # add comment at referrer
+                obj = req.originator.genkpair
+                idx, name, part = get_part_index(obj)
+                line = str(typedecl.item.span)
+                cmt = "\"%s\" is defined at module \"%s\" near original line %s" % (uname.last(), node.name, line)
+                part_insert_comment(obj.kgen_parent, name, idx, cmt)
+
+                # add comment at referee
+                obj = typedecl.genkpair
+                idx, name, part = get_part_index(obj)
+                ref = ":".join(uname.namelist[:-1])
+                line = str(uname.stmt.item.span)
+                cmt = "\"%s\" is referenced from namepath of \"%s\" near original line %s" % (uname.last(), ref, line)
+                part_insert_comment(obj.kgen_parent, name, idx, cmt)
+
     def create_subp_varlist(self, node):
 
         idx, name, part = get_part_index(node)
@@ -34,7 +56,12 @@ class GenVar(Kgen_Plugin):
                 for uname, res in gendata:
                     call = ":".join(uname.namelist[:-1])
                     line = str(uname.stmt.item.span)
-                    cmt = "referenced at \"%s\" near original source line %s" % (call, line)
+                    cmt = "referenced from \"%s\" near original line %s" % (call, line)
+                    part_insert_comment(node.kgen_parent, name, idx, cmt)
+
+                    call = ":".join(uname.namelist[:-1])
+                    line = str(uname.stmt.item.span)
+                    cmt = "referenced from \"%s\" near original line %s" % (call, line)
                     part_insert_comment(node.kgen_parent, name, idx, cmt)
 
         part_insert_comment(node.kgen_parent, name, idx, "")
@@ -42,6 +69,12 @@ class GenVar(Kgen_Plugin):
         part_insert_comment(node.kgen_parent, name, idx, "This subprogram is called from following callsites:")
         part_insert_comment(node.kgen_parent, name, idx, "#########################################################")
         part_insert_comment(node.kgen_parent, name, idx, "")
+
+
+        # TODO: mark at originator and destination too
+        #for typedecl in node.kgen_stmt.typedecl_resolvers:
+        #    for uname, req in KGGenType.get_state_in(typedecl.geninfo):
+        #        import pdb;pdb.set_trace()
 
 
     def create_callsite_varlist(self, node):

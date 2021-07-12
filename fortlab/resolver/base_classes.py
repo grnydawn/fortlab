@@ -916,14 +916,14 @@ class Statement(object):
                     anc.content[-1].geninfo[request.gentype] = []
 
 
-    def check_spec_stmts(self, uname, request):
+    def check_spec_stmts(self, uname, request, config):
         # the last resolver
         res_stmt = request.res_stmts[-1]
         if not hasattr(res_stmt, 'parent') or not hasattr(res_stmt.parent, 'spec_stmts'):
             return
 
         for spec_stmt in res_stmt.parent.spec_stmts:
-            spec_stmt.resolve_uname(uname, request)
+            spec_stmt.resolve_uname(uname, request, config)
 
 
     def get_res_stmts(self, uname):
@@ -964,7 +964,7 @@ class Statement(object):
                 request.res_stmts.append(typedecl_stmt)
                 request.state = ResState.RESOLVED
                 typedecl_stmt.add_geninfo(request.uname, request)
-                self.check_spec_stmts(request.uname, request)
+                self.check_spec_stmts(request.uname, request, config)
                 logger.debug('%s is resolved'%request.uname.firstpartname())
 
                 if not hasattr(typedecl_stmt, 'unknowns'):
@@ -1005,7 +1005,7 @@ class Statement(object):
                                 request.res_stmts.append(unit)
                                 request.state = ResState.RESOLVED
                                 unit.add_geninfo(request.uname, request)
-                                self.check_spec_stmts(request.uname, request)
+                                self.check_spec_stmts(request.uname, request, config)
                                 logger.debug('%s is resolved'%request.uname.firstpartname())
                                 for _stmt, _depth in walk(unit, -1):
                                     if not hasattr(_stmt, 'unknowns'):
@@ -1088,6 +1088,8 @@ class BeginStatement(Statement):
     _repr_attr_names = ['blocktype','name','construct_name'] + Statement._repr_attr_names
     def __init__(self, parent, item=None):
 
+        self.typedecl_resolvers = [] # KGen addition for variable list app
+
         self.content = []
         self.get_item = parent.get_item # get line function
         self.put_item = parent.put_item # put line function
@@ -1154,7 +1156,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(subp)
                     request.state = ResState.RESOLVED
                     subp.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     if subp not in request.originator.ancestors():
@@ -1177,7 +1179,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(subp)
                     request.state = ResState.RESOLVED
                     subp.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     if subp not in request.originator.ancestors():
@@ -1210,7 +1212,7 @@ class BeginStatement(Statement):
                                 request.res_stmts.append(item)
                                 request.state = ResState.RESOLVED
                                 item.add_geninfo(request.uname, request)
-                                self.check_spec_stmts(request.uname, request)
+                                self.check_spec_stmts(request.uname, request, config)
                                 logger.debug('%s is resolved'%request.uname.firstpartname())
                                 for _stmt, _depth in walk(item, -1):
                                     if not hasattr(_stmt, 'unknowns'):
@@ -1229,7 +1231,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(type_stmt)
                     request.state = ResState.RESOLVED
                     type_stmt.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     for _stmt, _depth in walk(type_stmt, -1):
@@ -1249,7 +1251,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(enum_stmt)
                     request.state = ResState.RESOLVED
                     enum_stmt.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     for _stmt, _depth in walk(enum_stmt, -1):
@@ -1275,8 +1277,11 @@ class BeginStatement(Statement):
                     request.res_stmts.append(typedecl_stmt)
                     request.state = ResState.RESOLVED
                     typedecl_stmt.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
+
+                    if typedecl_stmt not in self.typedecl_resolvers:
+                        self.typedecl_resolvers.append(typedecl_stmt)
 
                     if not hasattr(typedecl_stmt, 'unknowns'):
                         f2003_search_unknowns(typedecl_stmt, typedecl_stmt.f2003, config)
@@ -1295,7 +1300,7 @@ class BeginStatement(Statement):
                             request.res_stmts.append(item)
                             request.state = ResState.RESOLVED
                             item.add_geninfo(request.uname, request)
-                            self.check_spec_stmts(request.uname, request)
+                            self.check_spec_stmts(request.uname, request, config)
                             logger.info('%s is resolved'%request.uname.firstpartname())
                             for _stmt, _depth in walk(item, -1):
                                 if not hasattr(_stmt, 'unknowns'):
@@ -1315,7 +1320,7 @@ class BeginStatement(Statement):
                             request.res_stmts.append(item)
                             request.state = ResState.RESOLVED
                             item.add_geninfo(request.uname, request)
-                            self.check_spec_stmts(request.uname, request)
+                            self.check_spec_stmts(request.uname, request, config)
                             logger.info('%s is resolved'%request.uname.firstpartname())
                             for _stmt, _depth in walk(item, -1):
                                 if not hasattr(_stmt, 'unknowns'):
@@ -1336,7 +1341,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(common_stmt)
                     request.state = ResState.RESOLVED
                     common_stmt.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     if not hasattr(common_stmt, 'unknowns'):
@@ -1353,7 +1358,7 @@ class BeginStatement(Statement):
                 request.res_stmts.append(external_stmt)
                 request.state = ResState.RESOLVED
                 external_stmt.add_geninfo(request.uname, request)
-                self.check_spec_stmts(request.uname, request)
+                self.check_spec_stmts(request.uname, request, config)
                 logger.debug('%s is resolved'%request.uname.firstpartname())
 
             # check if use stmt can resolve
@@ -1374,7 +1379,7 @@ class BeginStatement(Statement):
                                         logger.debug('%s is resolved in norenames'%uname)
                                         request.res_stmts.append(use_stmt)
                                         use_stmt.add_geninfo(request.uname, request)
-                                        self.check_spec_stmts(request.uname, request)
+                                        self.check_spec_stmts(request.uname, request, config)
                                         break
 
                                 rename = [r for r in use_stmt.renames if r[0]==uname]
@@ -1388,7 +1393,7 @@ class BeginStatement(Statement):
                                         request.pop_uname(reset_uname=True)
                                         request.res_stmts.append(use_stmt)
                                         use_stmt.add_geninfo(request.uname, request)
-                                        self.check_spec_stmts(request.uname, request)
+                                        self.check_spec_stmts(request.uname, request, config)
                                         break
                                     else:
                                         request.pop_uname()
@@ -1405,7 +1410,7 @@ class BeginStatement(Statement):
                                         if request.state == ResState.RESOLVED:
                                             request.res_stmts.append(use_stmt)
                                             use_stmt.add_geninfo(request.uname, request)
-                                            self.check_spec_stmts(request.uname, request)
+                                            self.check_spec_stmts(request.uname, request, config)
                                             break
 
                                     rename = [r for r in use_stmt.renames if r[0]==uname]
@@ -1420,7 +1425,7 @@ class BeginStatement(Statement):
                                             request.pop_uname(reset_uname=True)
                                             request.res_stmts.append(use_stmt)
                                             use_stmt.add_geninfo(request.uname, request)
-                                            self.check_spec_stmts(request.uname, request)
+                                            self.check_spec_stmts(request.uname, request, config)
                                             break
                                         else:
                                             request.pop_uname()
@@ -1464,7 +1469,7 @@ class BeginStatement(Statement):
                                         if request.state == ResState.RESOLVED:
                                             request.res_stmts.append(use_stmt)
                                             use_stmt.add_geninfo(request.uname, request)
-                                            self.check_spec_stmts(request.uname, request)
+                                            self.check_spec_stmts(request.uname, request, config)
                                             break
                             if request.state==ResState.RESOLVED: break
 
@@ -1477,7 +1482,7 @@ class BeginStatement(Statement):
                     request.res_stmts.append(type_stmt)
                     request.state = ResState.RESOLVED
                     type_stmt.add_geninfo(request.uname, request)
-                    self.check_spec_stmts(request.uname, request)
+                    self.check_spec_stmts(request.uname, request, config)
                     logger.debug('%s is resolved'%request.uname.firstpartname())
 
                     #if self not in request.originator.ancestors():
@@ -1499,7 +1504,7 @@ class BeginStatement(Statement):
                             request.res_stmts.append(child)
                             request.state = ResState.RESOLVED
                             child.add_geninfo(request.uname, request)
-                            child.check_spec_stmts(request.uname, request)
+                            child.check_spec_stmts(request.uname, request, config)
                             logger.debug('%s is resolved'%request.uname.firstpartname())
 
                             #if self not in request.originator.ancestors():
