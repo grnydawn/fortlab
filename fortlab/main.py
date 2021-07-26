@@ -14,7 +14,7 @@ from fortlab.vargen import FortranVariableAnalyzer
 
 class Fortlab(Project):
     _name_ = "fortlab"
-    _version_ = "0.1.13"
+    _version_ = "0.1.14"
     _description_ = "Fortran Analysis Utilities"
     _long_description_ = "Tools for Analysis of Fortran Application and Source code"
     _author_ = "Youngsung Kim"

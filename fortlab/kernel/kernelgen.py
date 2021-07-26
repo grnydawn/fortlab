@@ -4,7 +4,7 @@
 # [GCC 8.4.0]
 # Embedded file name: /home/grnydawn/repos/github/fortlab/fortlab/kernel/kernelgen.py
 # Compiled at: 2020-07-13 10:26:24
-import os, io, locale, math, random
+import os, io, locale, math, random, datetime
 
 from collections import OrderedDict
 from microapp import App
