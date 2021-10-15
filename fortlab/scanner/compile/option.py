@@ -172,10 +172,10 @@ class FortranCompilerOption(App):
 #
 
         if args.savejson:
-            jsonfile = args.savejson["_"]
+            jsonfile = args.savejson["_"].strip()
             dirname = os.path.dirname(jsonfile)
 
-            if not os.path.exists(dirname):
+            if dirname and not os.path.exists(dirname):
                 os.makedirs(dirname)
 
             #cmd = ["dict2json", "@flags", "-o", jsonfile]
