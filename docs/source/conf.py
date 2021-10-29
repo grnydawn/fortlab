@@ -15,18 +15,15 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import sphinx_rtd_theme
-from fortlab import Fortlab
 
 # -- Project information -----------------------------------------------------
 
-project = 'fortlab'
-project = Fortlab._name_
-copyright = '2021, %s' % Fortlab._author_
-author = Fortlab._author_
+project = 'FortLab'
+copyright = '2021, Youngsung Kim'
+author = 'Youngsung Kim'
 
 # The full version, including alpha/beta/rc tags
-release = Fortlab._version_
-
+release = '0.1.15'
 
 # -- General configuration ---------------------------------------------------
 
