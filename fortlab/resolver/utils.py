@@ -179,22 +179,37 @@ def filter_stmts(content, classes):
 
 
 def get_module_files(directory, _cache={}):
+
     if directory in _cache:
         return _cache[directory]
+
     module_line = re.compile(r'(\A|^)module\s+(?P<name>\w+)\s*(!.*|)$',re.I | re.M)
+
     d = {}
     files = []
+
     for ext in module_file_extensions:
         files += glob.glob(os.path.join(directory,'*'+ext))
+
     for fn in files:
-        f = io.open(fn,'r', encoding="utf-8")
-        for name in module_line.findall(f.read()):
+
+        try:
+            with io.open(fn,'r', encoding="utf-8") as f:
+                text = f.read()
+
+        except UnicodeDecodeError as err:
+            with io.open(fn,'r', encoding="latin-1") as f:
+                text = f.read()
+
+        for name in module_line.findall(text):
             name = name[1]
             if name in d:
                 print(d[name],'already defines',name)
                 continue
             d[name] = fn
+
     _cache[directory] = d
+
     return d
 
 def get_module_file(name, directory, _cache={}):
@@ -220,8 +235,6 @@ def module_in_file(name, filename):
     name = name.lower()
     pattern = re.compile(r'\s*module\s+(?P<name>[a-z]\w*)', re.I).match
 
-    # KGEN added latin-1 encoder
-
     try:
         with io.open(filename,'r', encoding="utf-8") as f:
             lines = f.readlines()
@@ -233,10 +246,7 @@ def module_in_file(name, filename):
     for line in lines:
         m = pattern(line)
         if m and m.group('name').lower()==name:
-            #f.close()
             return filename
-    #f.close()
-
 
 def str2stmt(string, isfree=True, isstrict=False):
     """ Convert Fortran code to Statement tree.

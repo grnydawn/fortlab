@@ -230,13 +230,13 @@ class FortranCompilerOption(App):
 
         try:
             with io.open(path,'r', encoding="utf-8") as f:
-                lines = f.read()
+                text = f.read()
 
         except UnicodeDecodeError as err:
             with io.open(path,'r', encoding="latin-1") as f:
-                lines = f.read()
+                text = f.read()
 
-        for incidx, match in enumerate(RE_INCLUDE.findall(lines)):
+        for incidx, match in enumerate(RE_INCLUDE.findall(text)):
             incfilename = match[2].strip()
 
             for incdir in incs: 
