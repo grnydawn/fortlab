@@ -1470,7 +1470,6 @@ class Use(Statement):
                         self.name in config["custom_resolvers"]["module"]:
                         self.module = config["custom_resolvers"]["module"][self.name]
                     else:
-                        import pdb; pdb.set_trace()
                         raise UserException("Module, %s, is not found at %s. "
                             "Please check include paths for searching module "
                             "files." % (self.name, self.reader.id))
@@ -1669,7 +1668,7 @@ class Parameter(Statement):
                     f2003_search_unknowns(self, node.items[1], config)
                     for unknown, request in self.unknowns.items():
                         if request.state != ResState.RESOLVED:
-                            self.resolve(request)
+                            self.resolve(request, config)
 
     def tokgen(self):
         if hasattr(self, 'new_items'):

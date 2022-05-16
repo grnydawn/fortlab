@@ -393,7 +393,7 @@ class SrcFile(object):
                             if hasattr(stmt, 'unknowns'):
                                 for unk, req in stmt.unknowns.items():
                                     if req.state != ResState.RESOLVED:
-                                        stmt.resolve(req) 
+                                        stmt.resolve(req, config) 
 
                     elif dname=='exclude':
                         next_fort_stmt = get_next_non_comment(stmt)
