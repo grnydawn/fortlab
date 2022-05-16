@@ -1470,6 +1470,7 @@ class Use(Statement):
                         self.name in config["custom_resolvers"]["module"]:
                         self.module = config["custom_resolvers"]["module"][self.name]
                     else:
+                        import pdb; pdb.set_trace()
                         raise UserException("Module, %s, is not found at %s. "
                             "Please check include paths for searching module "
                             "files." % (self.name, self.reader.id))

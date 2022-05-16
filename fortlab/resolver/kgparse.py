@@ -351,11 +351,26 @@ class SrcFile(object):
                         sname = dname[6:]
                         directs.append(sname)
                         config["kernel"]['name'] = clause
+
+                        if sname in ('mixed',):
+                            match = re.finditer(r'\(', clause)
+                            if match:
+                                for m in match: 
+                                    start = m.start()
+                                    varname = clause[:start]
+                                    pos = clause.find(")", start)
+                                    if pos < 0:
+                                        raise Exception("Can not not closing parenthesis")
+                                    config["mixed"]['varnames'][varname.strip()] = clause[start+1:pos]
+
+                            else:
+                                raise Exception("No variable in mixedprec directive")
+
                     elif dname.startswith('end_'):
                         ename = dname[4:]
                         if directs[-1]==ename:
                             directs.pop()
-                            if ename=='callsite':
+                            if ename in ('callsite', 'mixed'):
                                 while isinstance(config["callsite"]['stmts'][-1], Comment):
                                     config["callsite"]['stmts'].pop()
                             else:
@@ -369,6 +384,7 @@ class SrcFile(object):
                             config["callsite"]['stmts'].append(next_fort_stmt)
                         else:
                             raise UserException('WARNING: callsite is not found')
+
                     elif dname=='write':
                         if clause:
                             stmt.write_state = tuple( c.strip() for c in clause.split(',') )
@@ -395,10 +411,10 @@ class SrcFile(object):
                         else:
                             raise UserException('WARNING: coverage target is not found')
 
-                elif 'callsite' in directs: # if not match and within callsite
+                elif 'callsite' in directs or 'mixed' in directs: # if not match and within callsite
                     if config["callsite"]['stmts'] or not isinstance(stmt, Comment):
                         config["callsite"]['stmts'].append(stmt)
-            elif 'callsite' in directs: # if not Comment
+            elif 'callsite' in directs or 'mixed' in directs: # if not Comment
                 config["callsite"]['stmts'].append(stmt)
             else: # not in callsite
                 if config["callsite"]['namepath'] and stmt.__class__ in executable_construct:

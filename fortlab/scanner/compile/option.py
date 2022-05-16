@@ -228,17 +228,22 @@ class FortranCompilerOption(App):
         dirname = os.path.dirname(path)
         incs.insert(0, dirname)
 
-        with io.open(path,'r', encoding="utf-8") as f:
-            lines = f.read()
+        try:
+            with io.open(path,'r', encoding="utf-8") as f:
+                lines = f.read()
 
-            for incidx, match in enumerate(RE_INCLUDE.findall(lines)):
-                incfilename = match[2].strip()
+        except UnicodeDecodeError as err:
+            with io.open(path,'r', encoding="latin-1") as f:
+                lines = f.read()
 
-                for incdir in incs: 
-                    incsrc = os.path.join(incdir, incfilename)
+        for incidx, match in enumerate(RE_INCLUDE.findall(lines)):
+            incfilename = match[2].strip()
 
-                    if os.path.isfile(incsrc):
-                        incbackup = os.path.join(outdir, "%d-%d" % (srcnum, incidx))
-                        shutil.copy(incsrc, incbackup)
-                        data[path].append((incsrc, incbackup))
-                        break
+            for incdir in incs: 
+                incsrc = os.path.join(incdir, incfilename)
+
+                if os.path.isfile(incsrc):
+                    incbackup = os.path.join(outdir, "%d-%d" % (srcnum, incidx))
+                    shutil.copy(incsrc, incbackup)
+                    data[path].append((incsrc, incbackup))
+                    break

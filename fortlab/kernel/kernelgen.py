@@ -361,20 +361,25 @@ class FortranKernelGenerator(App):
         return (".").join(l)
 
     def generate_kernel_makefile(self, kernelpath, enc):
+
         openmp_flags = ["-fopenmp", "-qopenmp", "-mp", "-xopenmp", "-qsmp=omp"]
         callsite_base = os.path.basename(self.config["callsite"]["filepath"])
         driver_base = "%s.f90" % self.config["kernel_driver"]["name"]
+
         dep_base_srcfiles = [
             os.path.basename(filepath)
             for filepath, srclist in self.config["used_srcfiles"].items()
         ]
         dep_bases = dep_base_srcfiles + [driver_base]
+
         all_objs_srcfiles = [
             self.obj(dep_base_srcfile) for dep_base_srcfile in dep_base_srcfiles
         ]
         all_objs = all_objs_srcfiles + [self.obj(driver_base), self.obj(KGUTIL)]
+
         depends = OrderedDict()
         depends[driver_base] = (" ").join(all_objs_srcfiles + [self.obj(KGUTIL)])
+
         for filepath, (kfile, sfile, mods_used, units_used) in self.config[
             "used_srcfiles"
         ].items():
@@ -404,28 +409,40 @@ class FortranKernelGenerator(App):
 
         compilers = OrderedDict()
         compiler_options = OrderedDict()
+
         for path, kfile in self.config["include"]["file"].items():
             base = os.path.basename(path)
+
             if base not in dep_bases:
                 continue
+
             comp = None
+
             if "compiler" in kfile:
                 comp = kfile["compiler"]
             elif "compiler" in self.config["include"]["compiler"]:
                 comp = self.config["include"]["compiler"]["compiler"]
+
             if comp:
                 if comp in compilers:
                     if base not in compilers[comp]:
                         compilers[comp].append(base)
                 else:
                     compilers[comp] = [base, driver_base]
+
             opts = ""
+
             if "compiler_options" in self.config["include"]["compiler"]:
                 opts = (
                     opts + " " + self.config["include"]["compiler"]["compiler_options"]
                 )
-            if "compiler_options" in kfile and kfile["compiler_options"]:
-                opts = opts + " " + kfile["compiler_options"]
+
+            #if "compiler_options" in kfile and kfile["compiler_options"]:
+            #    opts = opts + " " + kfile["compiler_options"]
+
+            if "options" in kfile and kfile["options"]:
+                opts = opts + " " + " ".join(kfile["options"])
+
             if self.config["model"]["types"]["code"]["enabled"]:
                 if comp:
                     compname = os.path.basename(comp)
@@ -435,17 +452,22 @@ class FortranKernelGenerator(App):
                         opts += " -cpp "
                     elif compname.startswith("pg"):
                         opts += " -Mpreprocess "
+
                 opts += ' -D KGEN_COVERAGE # Comment out "-D KGEN_COVERAGE" to turn off coverage feature.'
+
             if self.config["add_mpi_frame"]["enabled"]:
                 if comp:
                     compname = os.path.basename(comp)
+
                     if compname == "ifort" and "-fpp" not in opts:
                         opts += " -fpp "
                     elif compname == "gfortran" and "-cpp" not in opts:
                         opts += " -cpp "
                     elif compname.startswith("pg") and "-Mpreprocess" not in opts:
                         opts += " -Mpreprocess "
+
                     opts += " -D_MPI "
+
             if len(opts) > 0:
                 if opts in compiler_options:
                     if base not in compiler_options[opts]:
@@ -455,6 +477,7 @@ class FortranKernelGenerator(App):
 
         link_flags = (" ").join(self.config["kernel_option"]["linker"]["add"])
         objects = ""
+
         if "import" in self.config["include"]:
             for path, import_type in self.config["include"]["import"].items():
                 if import_type == "library" or import_type == "shared_library":
@@ -463,8 +486,10 @@ class FortranKernelGenerator(App):
                     pos2 = import_type.find(")")
                     lib = "-l" + import_type[pos1 + 1 : pos2].strip()
                     link_flags += " %s %s" % (inc, lib)
+
                 elif import_type == "static-library":
                     link_flags += " %s" % path
+
                 elif import_type == "object":
                     objects += " %s" % os.path.basename(path)
                     shutil.copy(
@@ -479,8 +504,10 @@ class FortranKernelGenerator(App):
         with io.open(os.path.join(kernelpath, "Makefile"), "w", encoding=enc) as (f):
             self.write(f, "# Makefile for KGEN-generated kernel")
             self.write(f, "")
+
             if self.config["kernel_option"]["FC"]:
                 self.write(f, "FC_0 := %s" % self.config["kernel_option"]["FC"])
+
             else:
                 if self.config["add_mpi_frame"]["enabled"]:
                     self.write(f, "# Originally used compiler(s)")
@@ -493,36 +520,27 @@ class FortranKernelGenerator(App):
                         self.write(f, "FC_%d := %s" % (i, compiler))
 
                 if self.config["kernel_option"]["FC_FLAGS"]:
-                    self.write(
-                        f,
-                        "FC_FLAGS_SET_0 := %s"
-                        % self.config["kernel_option"]["FC_FLAGS"],
-                    )
+                    self.write( f, "FC_FLAGS_SET_0 := %s" %
+                                self.config["kernel_option"]["FC_FLAGS"],)
                 else:
                     for i, options in enumerate(compiler_options):
                         opt_list = options.split()
                         L = len(opt_list)
                         new_options = []
+
                         if L > 1:
                             skip_next = False
                             for opt in opt_list:
                                 if skip_next:
                                     skip_next = False
                                     continue
-                                if (
-                                    opt
-                                    in self.config["kernel_option"]["compiler"][
-                                        "remove"
-                                    ]
-                                ):
+                                if (opt in self.config["kernel_option"]["compiler"]["remove"]):
                                     pass
-                                elif (
-                                    "%s+" % opt
-                                    in self.config["kernel_option"]["compiler"][
-                                        "remove"
-                                    ]
-                                ):
+
+                                elif ("%s+" % opt in
+                                        self.config["kernel_option"]["compiler"][ "remove" ]):
                                     skip_next = True
+
                                 elif opt not in openmp_flags:
                                     new_options.append(opt)
 
@@ -530,9 +548,8 @@ class FortranKernelGenerator(App):
                             if add_opt not in new_options:
                                 new_options.append(add_opt)
 
-                        self.write(
-                            f, "FC_FLAGS_SET_%d := %s" % (i, (" ").join(new_options))
-                        )
+                        self.write(f, "FC_FLAGS_SET_%d := %s" %
+                                    (i, (" ").join(new_options)))
 
             prerun_build_str = ""
             if (

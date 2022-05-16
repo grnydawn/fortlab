@@ -219,14 +219,23 @@ def get_module_file(name, directory, _cache={}):
 def module_in_file(name, filename):
     name = name.lower()
     pattern = re.compile(r'\s*module\s+(?P<name>[a-z]\w*)', re.I).match
-    f = io.open(filename,'r', encoding="utf-8")
 
-    for line in f:
+    # KGEN added latin-1 encoder
+
+    try:
+        with io.open(filename,'r', encoding="utf-8") as f:
+            lines = f.readlines()
+
+    except UnicodeDecodeError as err:
+        with io.open(filename,'r', encoding="latin-1") as f:
+            lines = f.readlines()
+
+    for line in lines:
         m = pattern(line)
         if m and m.group('name').lower()==name:
-            f.close()
+            #f.close()
             return filename
-    f.close()
+    #f.close()
 
 
 def str2stmt(string, isfree=True, isstrict=False):

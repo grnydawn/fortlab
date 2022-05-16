@@ -163,8 +163,13 @@ class FortranNameResolver(App):
 
         self.config['modules'] = OrderedDict()
         self.config['srcfiles'] = OrderedDict()
+
         self.config['kernel'] = OrderedDict()
         self.config['kernel']['name'] = None
+
+        self.config['mixed'] = OrderedDict()
+        self.config['mixed']["varnames"] = OrderedDict()
+
         self.config['callsite'] = OrderedDict()
         self.config['callsite']['stmts'] = []
         self.config['callsite']['filepath'] = ''
