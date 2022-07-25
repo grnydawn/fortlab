@@ -24,6 +24,7 @@ class FortranCompilerOption(App):
 
     _name_ = "compileroption"
     _version_ = "0.1.0"
+    _description_ = "compiles the target application and collect compiler options per each compiled source files."
 
     def __init__(self, mgr):
 

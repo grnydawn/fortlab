@@ -33,28 +33,14 @@ Requirements
 - C Preprocessor(cpp)
 - System Call Tracer(strace)
 
-.. COMMENT START
-    -------------------------
-    Kernel Extraction
-    -------------------------
+------------------
+What's in Fortlab
+------------------
 
-    Once fortlab is installed correctly and a E3SM case is created successfully, you can extract a kernel as explained below.
+Fortlab is consist of multiple modules(Apps) that can be assembled together to generate a kernel-based software tools. As of this version, there are following apps in Fortlab.
 
-    The syntax of fortlab command is following:
-
-            >>> fortlab <mpasocn|eam> $CASEDIR $CALLSITEFILE
-
-    , where $CASEDIR is a directory path to E3SM case directory and $CALLSITEFILE is a file path to a E3SM source file containing fortlab kernel region directives(explained below).
-    As of this version, there exist two subcommands of mpasocn and eam for MPAS Ocean Model and E3SM Atmospheric Model each. Please see _command for details about the sub-commands.
-
-    fortlab kernel region in source code is defined by a pair of "begin_callsite" and "end_callsite" directives. The kernel region is where to be extracted. Following example shows a fortlab kernel region that encompasses a DO loop.
-
-    ::
-
-            !$kgen begin_callsite vecadd
-            DO i=1
-                    C(i) = A(i) + B(i)
-            END DO
-            !$kgen  end_callsite
-
-    Please see _directives for details about using fortlab directives.
+* compileroption  : compiles the target application and collect compiler options per each compiled source files.
+* resolve         : generates cross-referece information of all Fortran names used in the specified kernel region directly as well as indirectly.
+* timinggen       : generates the elapsed time of the specified kernel region in JSON file, per every MPI ranks, every OpenMP threads(if any), and every invocation of the code regions
+* kernelgen       : generates the kernel source files and data files to drive the extracted kernel.
+* vargen          : generates source files that contains the cross-referece information of all Fortran names used in the specified kernel region

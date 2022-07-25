@@ -39,6 +39,7 @@ KGUTIL = "kgen_utils.f90"
 class FortranVariableAnalyzer(App):
     _name_ = "vargen"
     _version_ = "0.1.0"
+    _description_ = "generates source files that contains the cross-referece information of all Fortran names used in the specified kernel region"
 
     def __init__(self, mgr):
         self.add_argument("analysis", help="analysis object")

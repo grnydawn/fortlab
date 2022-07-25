@@ -45,6 +45,7 @@ KGUTIL = "kgen_utils.f90"
 class FortranKernelGenerator(App):
     _name_ = "kernelgen"
     _version_ = "0.1.0"
+    _description_ = "generates the kernel source files and data files to drive the extracted kernel"
 
     def __init__(self, mgr):
         self.add_argument("analysis", help="analysis object")

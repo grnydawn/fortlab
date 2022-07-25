@@ -41,6 +41,7 @@ class FortranNameResolver(App):
 
     _name_ = "resolve"
     _version_ = "0.1.0"
+    _description_ = "generates cross-referece information of all Fortran names used in the specified kernel region directly as well as indirectly"
 
     def __init__(self, mgr):
 

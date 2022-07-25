@@ -13,7 +13,9 @@ class FortranTimingGenerator(App):
 
     _name_ = "timinggen"
     _version_ = "0.1.0"
-
+    _description_ = """generates the elapsed time of the specified kernel region in JSON file,
+ per every MPI ranks, every OpenMP threads(if any), and every invocation of the code regions
+"""
     def __init__(self, mgr):
 
         self.config = None
