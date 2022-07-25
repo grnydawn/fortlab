@@ -32,15 +32,60 @@ Requirements
 - Make building tool(make)
 - C Preprocessor(cpp)
 - System Call Tracer(strace)
+- Compiler(s) to compile your Fortran application
 
-------------------
-What's in Fortlab
-------------------
+With FortLab, you can collect information about building and running a Fortran application or can instrument original source code to generate runtime information such as kernel timing. Following section briefly explains how FortLab works by showing an example for collectting compiler command line flags per each source files that are compiled during the application build.
 
-Fortlab is consist of multiple modules(Apps) that can be assembled together to generate a kernel-based software tools. As of this version, there are following apps in Fortlab.
+--------------------------------------
+Collecting compiler command-line flags
+--------------------------------------
 
-* compileroption  : compiles the target application and collect compiler options per each compiled source files.
-* resolve         : generates cross-referece information of all Fortran names used in the specified kernel region directly as well as indirectly.
-* timinggen       : generates the elapsed time of the specified kernel region in JSON file, per every MPI ranks, every OpenMP threads(if any), and every invocation of the code regions
-* kernelgen       : generates the kernel source files and data files to drive the extracted kernel.
-* vargen          : generates source files that contains the cross-referece information of all Fortran names used in the specified kernel region
+.. code-block:: fortran
+
+        program hello
+            integer, parameter :: N = 10
+            integer, dimension(N) :: A, B, C
+            integer :: i
+
+            do i=1,N
+               A(i) = 1
+               B(i) = 2
+               C(i) = 0
+            end do
+
+            !$kgen begin_callsite mykernel
+            call vecadd(N, A, B, C)
+            !$kgen end_callsite mykernel
+
+            do i=1,N
+               if (C(i) .ne. 3) then
+                   print *, "mismatch"
+                   stop
+               end if
+            end do
+
+            print *, "correct"
+
+        contains
+
+            subroutine vecadd(N, A, B, C)
+                integer, intent(in) :: N
+                integer, dimension(:), intent(in) :: A, B
+                integer, dimension(:), intent(out) :: C
+                integer :: i
+
+                do i=1,N
+                    C(i) = A(i) + B(i)
+                end do
+
+            end subroutine
+
+        end program
+
+
+# kernel specification
+
+
+# running app
+
+# seeing result
