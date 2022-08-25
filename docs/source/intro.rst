@@ -36,9 +36,11 @@ Requirements
 
 With FortLab, you can collect information about building and running a Fortran application or can instrument original source code to generate runtime information such as kernel timing. Following section briefly explains how FortLab works by showing an example for collectting compiler command line flags per each source files that are compiled during the application build.
 
---------------------------------------
-Collecting compiler command-line flags
---------------------------------------
+----------------------------------------------------
+Example) Collecting compiler command-line flags
+----------------------------------------------------
+
+To explain, we will use following simple Fortran application.
 
 .. code-block:: fortran
 
@@ -53,9 +55,7 @@ Collecting compiler command-line flags
                C(i) = 0
             end do
 
-            !$kgen begin_callsite mykernel
             call vecadd(N, A, B, C)
-            !$kgen end_callsite mykernel
 
             do i=1,N
                if (C(i) .ne. 3) then
@@ -82,10 +82,37 @@ Collecting compiler command-line flags
 
         end program
 
+To collect compiler flags, we ran following fortlab command with compileroption subcommand in bash shell.
 
-# kernel specification
+.. code-block:: bash
+
+        fortlab compileroption "gfortran -O3 -DNELEMS=10 fortex1.F90" --savejson mykernel.json
+
+"fortlab" is a main command to drive its subcommands. In above example, "compileroption" sub-command is used to collect compiler flags. This compiler flag collection works even though the actual compiler commands are located in other shell scripts or Makefiles that may be called indirectly. Next argument to fortlab-compileroption command is the compiling command itself. You can optionally save the result to Json file.
+
+The content of "mykernel.json" is shown below.
+
+.. code-block:: json
+
+        {
+            "/autofs/nccs-svm1_home1/grnydawn/repos/github/fortlab/examples/fortex1.F90": {
+                "compiler": "/usr/bin/gfortran",
+                "include": [],
+                "macros": [
+                    [
+                        "NELEMS",
+                        "10"
+                    ]
+                ],
+                "openmp": [],
+                "options": [
+                    "-O3"
+                ],
+                "srcbackup": [
+                    "/autofs/nccs-svm1_home1/grnydawn/repos/github/fortlab/examples/backup/src/0"
+                ]
+            }
+        }
 
 
-# running app
-
-# seeing result
+As you can see the details of compiler and compiler options are saved in Json file. The information in this Json file may be further used for another applicationp. In case of kernel extraction, the information in this Json file is used to analyze source files with proper include paths and macro definitions.
