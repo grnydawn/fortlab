@@ -8,7 +8,7 @@ FortLab is a software tool development framework on which developers can build a
 Fortlab Framework
 ------------------
 
-.. image:: ./_static/Fortlab_Framework.svg
+.. image:: ./_static/Fortlab_Framework.png
 
 Above Figure shows a high-level view of the framework. At the core of the framework, FortLab built-in applications exist. Each built-in applications provides core features of kernel extraction and analysis capabilities. The applications can be used in a Python script as a part of another application. Or they can directly run on shell as a sub-command of "fortlab" command. The details of creating and using FortLab applications are explained in Section XXX. The built-in applications are explained in Section XXX.
 
