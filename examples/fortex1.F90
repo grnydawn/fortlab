@@ -1,5 +1,5 @@
 program hello 
-    integer, parameter :: N = 10
+    integer, parameter :: N = NELEMS
     integer, dimension(N) :: A, B, C
     integer :: i
 
@@ -9,9 +9,7 @@ program hello
        C(i) = 0
     end do
 
-    !$kgen begin_callsite vecacc
     call vecadd(N, A, B, C)
-    !$kgen end_callsite vecacc
 
     do i=1,N
        if (C(i) .ne. 3) then
