@@ -135,6 +135,7 @@ model.ini
 *.o
 *.mod
 *.exe
+*.json
 #kernel
 #state
 #etime

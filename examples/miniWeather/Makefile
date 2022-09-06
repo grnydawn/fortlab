@@ -26,5 +26,8 @@ F_FLAGS := ${INCLUDES} ${LIBS} ${MACROS} -h noacc,noomp
 miniweather_fort.exe: ${FORTSRC}
 	${FC} ${F_FLAGS} -o $@ $<
 
+compileroption: clean
+	fortlab compileroption "${FC} ${F_FLAGS} -c ${FORTSRC}" --savejson miniWeather_compopts.json
+
 clean:
-	rm -rf *.mod *.o *.s *.exe output.nc
+	rm -rf *.mod *.o *.s *.exe output.nc backup kgen.log
