@@ -1,13 +1,25 @@
 .. _resolve-app:
 
-
 *********************
 resolve app
 *********************
 
-::
+To decide which Fortran statements should be copied in the generated kernel code, all of Fortran name references should be resolved correctly. For example, if a variable is used in a statement, the definition of the variable should be copied in the generated kernel too even the name is defined in another source file or Fortran module. This name-reference analysis is statically done using Abstract Syntax Tree("AST") generated from a Fortran parser, F2PY.
 
-        usage: fortlab-resolve [-h] [--version] [--import-source srcpath] [--compile-info path] [--keep analysis]
+.. image:: ../_static/resolve_app.png
+
+Assuming that we want to extract "plusone(x)" at line 4 in Figure 2, the analyzer constructs AST of the entire Fortran code and decides that the dark nodes should be copied in the generated kernel. The resolution process starts with collect- ing names to be extracted. In this example of Figure 2, the resolver collects "plusone" and "x" in circle number 4. Next, the resolver moves one level up in the AST to PROGRAM statement, which is the circle number 1, and decides that circle number 2 and 6 are required. Because FUNCTION at the circle 6 includes all of circles 7,8, and 9, the three nodes under the circle 6 are also copied.
+
+
+
+Example
+***********
+
+
+Usage
+***********
+
+usage: fortlab-resolve [-h] [--version] [--import-source srcpath] [--compile-info path] [--keep analysis]
                                [-i INCLUDE_INI] [-e EXCLUDE_INI] [-I INCLUDE] [-D MACRO] [--outdir OUTDIR]
                                [--source SOURCE] [--intrinsic INTRINSIC] [--machinefile MACHINEFILE] [--debug DEBUG]
                                [--logging LOGGING] [--invocation INVOCATION] [--data DATA] [--openmp OPENMP] [--mpi MPI]

@@ -34,63 +34,37 @@ Requirements
 - System Call Tracer(strace)
 - Compiler(s) to compile your Fortran application
 
-With FortLab, you can collect information about building and running a Fortran application or can instrument original source code to generate runtime information such as kernel timing. Following section briefly explains how FortLab works by showing an example for collectting compiler command line flags per each source files that are compiled during the application build.
+
 
 ----------------------------------------------------
-Example) Collecting compiler command-line flags
+Using Fortlab built-in apps
 ----------------------------------------------------
 
-To explain, we will use following simple Fortran application.
+With FortLab, you can collect information about building and running a Fortran application or can instrument original source code to generate runtime information such as kernel timing. This section briefly explains how FortLab works by showing an example of collecting compiler command line flags per each source files that are compiled during the application build ("compileroption").
 
-.. code-block:: fortran
+"compileroption" app collects compiler flags from any build system including Makefile, Cmake, or any custom build system.
 
-        program hello
-            integer, parameter :: N = 10
-            integer, dimension(N) :: A, B, C
-            integer :: i
+To demonstrate, we created a simple Makefile that runs gfortran shown below. However, you can change the content of Makefile including compiler command to fit your needs:
 
-            do i=1,N
-               A(i) = 1
-               B(i) = 2
-               C(i) = 0
-            end do
+**<Makefile>**
 
-            call vecadd(N, A, B, C)
+.. code-block:: make
 
-            do i=1,N
-               if (C(i) .ne. 3) then
-                   print *, "mismatch"
-                   stop
-               end if
-            end do
+        compile:
+	        gfortran -O3 -DNELEMS=10 fortex1.F90
 
-            print *, "correct"
+Following Linux command runs fortlab with compileroption app to collect compiler flags from running above Makefile. It is assumed that fortlab is installed on the system as explained above.
 
-        contains
-
-            subroutine vecadd(N, A, B, C)
-                integer, intent(in) :: N
-                integer, dimension(:), intent(in) :: A, B
-                integer, dimension(:), intent(out) :: C
-                integer :: i
-
-                do i=1,N
-                    C(i) = A(i) + B(i)
-                end do
-
-            end subroutine
-
-        end program
-
-To collect compiler flags, we ran following fortlab command with compileroption subcommand in bash shell.
+**<fortlab Linux command>**
 
 .. code-block:: bash
 
-        fortlab compileroption "gfortran -O3 -DNELEMS=10 fortex1.F90" --savejson mykernel.json
+        >> fortlab compileroption "make compile" --savejson compopts.json
 
-"fortlab" is a main command to drive its subcommands. In above example, "compileroption" sub-command is used to collect compiler flags. This compiler flag collection works even though the actual compiler commands are located in other shell scripts or Makefiles that may be called indirectly. Next argument to fortlab-compileroption command is the compiling command itself. You can optionally save the result to Json file.
+Following json file is generated from running the compileroption app.
 
-The content of "mykernel.json" is shown below.
+
+**<compopts.json>**
 
 .. code-block:: json
 
@@ -114,5 +88,13 @@ The content of "mykernel.json" is shown below.
             }
         }
 
+"srcbackup" is a list of backup copies of the source files used during the compilation. This feature may be needed in the case that a build system dynamically generates and deletes source files at compile time.
 
-As you can see the details of compiler and compiler options are saved in Json file. The information in this Json file may be further used for another applicationp. In case of kernel extraction, the information in this Json file is used to analyze source files with proper include paths and macro definitions.
+To see more examples that uses other FortLab apps, please see :ref:`builtin-apps`.
+
+----------------------------------------------------
+Building and running a custom Fortlab apps
+----------------------------------------------------
+
+You can create and run your own Fortlab app by optionally using one or more Fortlab builtin apps. Please see :ref:`custom-apps` for more details.
+

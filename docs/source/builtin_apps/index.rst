@@ -1,7 +1,7 @@
-.. _apps-index:
+.. _builtin-apps:
 
 =================================
-Apps
+FortLab Built-in Apps
 =================================
 
 
