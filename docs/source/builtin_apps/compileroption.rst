@@ -5,7 +5,7 @@
 compileroption app
 *********************
 
-Many compiler options dictate which part of code should be com- piled and how the binary code should be generated. For example, it is common practice to use macros to specify a re- gion of code to be compiled in large applications. In addition, using the exact compiler options that are used to compile the original software is crucial to improve the representativeness of the generated kernel.
+Compiler options are important information to understand how a program source code is translated to a binary code. For example, macros in compiler command-line are used for many large applications. In addition, using the exact compiler options that are used to compile the original software is crucial to improve the representativeness of the generated kernel.
 
 FortLab uses Linux "strace" tool that traces system calls and signals. FortLab executes a Linux command that builds the original software under "strace" and parses the output from strace by tracing "execve" system call. The "strace" com- mand and options used in the app are shown in Listing 9. As a result of this app, developers can get all macro defi- nitions and include paths per every source file used in the compilation. A JSON file can be generated from this app so that developers can use it for later use. For example, "re- solve" app in Section 2.4.1 reads this JSON file through the "--compiler-info" option.
 
@@ -15,101 +15,90 @@ FortLab uses Linux "strace" tool that traces system calls and signals. FortLab e
    :linenos:
 
 
-    >> strace −f −s 100000 −e trace=execve \
-       −q −v −− /bin/sh −c "compile−command"
+    >> strace −f −s 100000 −e trace=execve −q −v −− /bin/sh −c "compile−command"
 
 "compile-command" is where to put the command-line string for compiling the original software. The "-e" option of "strace" sets to collect only "execve" system calls that are used by compiler invocations.
 
 Example
 *********
 
-To explain, we will use following simple Fortran application that adds two vector element-wise.
+To explain Fortlab compileroption app, we will use `Fortran MPI version of miniWeather <https://github.com/mrnorman/miniWeather/blob/main/fortran/miniWeather_mpi.F90>`_ as introduced in :ref:`builtin-apps` section.
 
-.. code-block:: fortran
+To collect compiler flags from compilation of miniWeather.F90, we ran following fortlab command with compileroption subcommand. Following shows the command line that compiles miniWeather in a Makefile. You can find the entire code of the Makefile at `https://github.com/grnydawn/fortlab/blob/master/examples/miniWeather/Makefile <https://github.com/grnydawn/fortlab/blob/master/examples/miniWeather/Makefile>`_.
 
-        program hello
-            integer, parameter :: N = 10
-            integer, dimension(N) :: A, B, C
-            integer :: i
+.. code-block:: makefile
 
-            do i=1,N
-               A(i) = 1
-               B(i) = 2
-               C(i) = 0
-            end do
+        INCLUDES := -I...
+        LIBS := -L...
+        MACROS := -D_NX=${NX} -D_NZ=${NZ} -D_SIM_TIME=${SIM_TIME} \
+                  -D_OUT_FREQ=${OUT_FREQ} -D_DATA_SPEC=${DATA_SPEC}
 
-            call vecadd(N, A, B, C)
+        FORTSRC := miniWeather_mpi.F90
+        F_FLAGS := ${INCLUDES} ${LIBS} ${MACROS} -h noacc,noomp
+        FC := ftn
 
-            do i=1,N
-               if (C(i) .ne. 3) then
-                   print *, "mismatch"
-                   stop
-               end if
-            end do
+        miniweather_fort.exe: ${FORTSRC}
+            ${FC} ${F_FLAGS} -o $@ $<
 
-            print *, "correct"
-
-        contains
-
-            subroutine vecadd(N, A, B, C)
-                integer, intent(in) :: N
-                integer, dimension(:), intent(in) :: A, B
-                integer, dimension(:), intent(out) :: C
-                integer :: i
-
-                do i=1,N
-                    C(i) = A(i) + B(i)
-                end do
-
-            end subroutine
-
-        end program
-
-Fortlab distribution comes with several built-in apps that collectively expose kernel extraction capability. One of them is to collect compiler flags for each of all compiled source files. In this example, we will show how to use the Fortlab app("compileroption") for collecting compiler flags.
-
-To collect compiler flags, we ran following fortlab command with compileroption subcommand in bash shell.
+Following Linux shell command runs Fortlab compileroption app.
 
 .. code-block:: bash
 
-        fortlab compileroption "gfortran -O3 -DNELEMS=10 fortex1.F90" --savejson mykernel.json
+        fortlab compileroption "make miniWeather_fort.exe" --savejson miniWeather_compopts.json
 
-"fortlab" is a main command to drive its subcommands. In above example, "compileroption" sub-command is used to collect compiler flags. The compiler flags can be collected from child processes. For example, user can use shell scripts, or Makefiles, or any other build-system that may embed compiler invocation deep in its code. Next argument to fortlab-compileroption command is the compiling command itself. You can optionally save the result to Json file using "--savejson" sub option.
+"fortlab" is a main command to drive its subcommands. In above example, "compileroption" sub-command is used to collect compiler flags. The actual command for compilation is shown inside of double-quotation marks. The compiler flags can be collected from child processes. For example, this example uses a Makefile. You can optionally save the result to Json file using "--savejson" sub option.
 
-Once the above command comples with success, "mykernel.json" file will be created. The content of "mykernel.json" is shown below.
+Once the above command runs with success, "miniWeather_compopts.json" file will be created. The content of the json file is shown below.
 
 .. code-block:: json
 
         {
-            "/autofs/nccs-svm1_home1/grnydawn/repos/github/fortlab/examples/fortex1.F90": {
-                "compiler": "/usr/bin/gfortran",
-                "include": [],
+            "/.../fortlab/examples/miniWeather/miniWeather_mpi.F90": {
+                "compiler": "/opt/cray/pe/craype/2.7.15/bin/ftn",
+                "include": [
+                    "/include"
+                ],
                 "macros": [
                     [
-                        "NELEMS",
-                        "10"
+                        "_NX",
+                        "100"
+                    ],
+                    [
+                        "_NZ",
+                        "50"
+                    ],
+                    [
+                        "_SIM_TIME",
+                        "10.0"
+                    ],
+                    [
+                        "_OUT_FREQ",
+                        "10.0"
+                    ],
+                    [
+                        "_DATA_SPEC",
+                        "1"
                     ]
                 ],
                 "openmp": [],
                 "options": [
-                    "-O3"
+                    "-h",
+                    "noacc,noomp"
                 ],
                 "srcbackup": [
-                    "/autofs/nccs-svm1_home1/grnydawn/repos/github/fortlab/examples/backup/src/0"
+                    "/.../fortlab/examples/miniWeather/backup/src/0"
                 ]
             }
         }
 
-
-As you can see the details of compiler and compiler options are saved in Json file. The information in this Json file may be further used for another applicationp. In case of kernel extraction, the information in this Json file is used to analyze source files with proper include paths and macro definitions.
+As you can see the details of compiler and compiler options are saved in Json file. "srcbackup" is a list of backup copies of the source files used during the compilation. This feature may be needed in the case that a build system dynamically generates and deletes source files at compile time. The information in this Json file may be further used for another applicationp. In case of kernel extraction, the information in this Json file is used to analyze source files with proper include paths and macro definitions.
 
 Usage
 *******
 
 compileroption app is invoked as a subcommand of fortlab command. You may first check the usage of fortlab command explained in a :ref:`overview section <fortlab_command_usage>` if you are not familiar with fortlab command.
 
-usage: fortlab-compileroption [-h] [--version] [--cleancmd CLEANCMD] [--workdir WORKDIR] [--savejson SAVEJSON]
-                              [--backupdir BACKUPDIR] [--verbose] [--check]
-                              build command
+usage: fortlab-compileroption [-h] [--version] [--cleancmd CLEANCMD] [--workdir WORKDIR] [--savejson SAVEJSON] [--backupdir BACKUPDIR] [--verbose] [--check] build command
 
 positional arguments:
   build command         Software build command
@@ -126,4 +115,4 @@ optional arguments:
   --check               check strace return code
 
 This app may feed-forward following data to next app:
-  data (type=any)    The collected compiler options can be used as an input data to next Fortlab app without saving as a file. If an app linked as a next app, the app can use the compiler flags with an input argument name of "data".
+  data (type=any)    The collected compiler options can be used as an input data to next Fortlab app without saving as a file. If an app is linked as a next app of this compileroption app, the linked app can use the compiler flags with an input argument name of "data".
