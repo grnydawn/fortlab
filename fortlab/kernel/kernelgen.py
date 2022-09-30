@@ -157,6 +157,8 @@ class FortranKernelGenerator(App):
         state_realpath = os.path.realpath(os.path.join(args.outdir, "state"))
         kernel_realpath = os.path.realpath(os.path.join(args.outdir, "kernel"))
 
+        print("==== Generating state data files ====")
+
         self.config["path"]["kernel_output"] = kernel_realpath
         self.config["path"]["state_output"] = state_realpath
 
@@ -186,6 +188,8 @@ class FortranKernelGenerator(App):
             self.config["invocation"]["triples"].append(
                 (("0", "0"), ("0", "0"), ("1", "1"))
             )
+
+        print("==== Generating kernel files ====")
 
         plugins = (
             ("ext.gencore", gencore_plugindir),
@@ -316,10 +320,12 @@ class FortranKernelGenerator(App):
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
 
+        print("==== Generating state data files ====")
+
         out, err, retcode = run_shcmd("make", cwd=state_realpath)
 
-        if retcode != 0:
-            print("ERROR: state make error")
+        #if retcode != 0:
+        #    print("ERROR: state make error")
 
         out, err, retcode = run_shcmd("make recover", cwd=state_realpath)
 

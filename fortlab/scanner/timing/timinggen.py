@@ -64,6 +64,10 @@ class FortranTimingGenerator(App):
         model_realpath = os.path.realpath(os.path.join(args.outdir, "model"))
         etime_realpath = os.path.realpath(os.path.join(args.outdir, "etime"))
 
+        print("==== Generating timing raw data ====")
+        print("[timing instrumentation directory] = %s" % etime_realpath)
+        print("[timing output directory] = %s" % model_realpath)
+
         self.add_forward(etimedir=etime_realpath, modeldir=model_realpath)
 
         data_etime_path = os.path.join(model_realpath, "__data__",

@@ -336,6 +336,9 @@ contains
     real(rp) :: r,u,w,t,p, stencil(4), d3_vals(NUM_VARS), vals(NUM_VARS), hv_coef
     !Compute the hyperviscosity coeficient
     hv_coef = -hv_beta * dz / (16*dt)
+
+!$kgen begin_callsite tend_z
+
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! TODO: THREAD ME
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -372,6 +375,8 @@ contains
         flux(i,k,ID_RHOT) = r*w*t   - hv_coef*d3_vals(ID_RHOT)
       enddo
     enddo
+
+!$kgen end_callsite
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     !! TODO: THREAD ME

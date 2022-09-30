@@ -1,6 +1,6 @@
 """Microapp compiler inspector"""
 
-import os, shutil
+import os, shutil, multiprocessing
 
 from collections import Mapping
 
@@ -38,6 +38,8 @@ class FortranTimingCollector(App):
 
         datadir = args.datadir["_"]
 
+        print("==== Collecting timing data ====")
+
         # collect data
         etimes = {} # mpirank:omptid:invoke=[(fileid, linenum, numvisits), ... ]
         etimemin = 1.0E100
@@ -56,7 +58,8 @@ class FortranTimingCollector(App):
             except:
                 pass
 
-        nprocs = 1
+        nprocs = max(int(multiprocessing.cpu_count()/2), 1)
+
         fwds = {"data": mpipaths}
         group_opts = ["--multiproc", "%d" % nprocs, "--assigned-input",
                "data:@data", "--clone", "%d" % len(mpipaths), "--data-join", "accumulate"]

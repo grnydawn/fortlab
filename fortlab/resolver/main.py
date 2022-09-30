@@ -326,7 +326,7 @@ class FortranNameResolver(App):
             else:
                 realpath = os.path.realpath(key)
 
-                if not os.path.exists(realpath):
+                if not os.path.exists(realpath) and "CMakeFortranCompilerId.F" not in realpath:
                     print("WARNING: '%s' does not exist. It may cause failure of KGen analysis." % realpath)
 
                 if realpath not in self.config["include"]['file']:
@@ -386,6 +386,8 @@ class FortranNameResolver(App):
 
         from fortlab.resolver.kgsearch import f2003_search_unknowns
         import fortlab.resolver.kganalyze as kganalyze
+
+        print("==== Analyzing source codes ====")
 
         if args.compile_info:
             cinfo = args.compile_info["_"]
@@ -462,6 +464,8 @@ class FortranNameResolver(App):
                         raise ProgramException('Resolution fail.')
             else:
                 logger.warn('Stmt does not have "unknowns" attribute: %s'%str(cs_stmt)) 
+
+        print("==== Updating state information ====")
 
         # update state info of callsite and its upper blocks
         kganalyze.update_state_info(self.config["parentblock"]['stmt'], self.config)

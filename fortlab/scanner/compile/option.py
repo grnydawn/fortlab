@@ -40,8 +40,10 @@ class FortranCompilerOption(App):
 
     def perform(self, args):
 
+
         buildcmd = args.buildcmd["_"]
 
+        print("==== Collecting compiler flags (%s) ====" % buildcmd)
 
         cwd = orgcwd = os.getcwd()
 
@@ -60,6 +62,8 @@ class FortranCompilerOption(App):
 
         if not os.path.exists(backupdir):
             os.makedirs(backupdir)
+
+        print("[Source backup directory] = %s" % backupdir)
 
         inq = multiprocessing.Queue()
         outq = multiprocessing.Queue()
@@ -122,8 +126,8 @@ class FortranCompilerOption(App):
                                                         if os.path.isfile(src):
                                                             inq.put((src, incs))
 
-                                                        else:
-                                                            print("Warning: %s is not backuped" % src)
+                                                        elif "CMakeFortranCompilerId.F" not in src:
+                                                            print("Info: %s is not saved in backup directory." % src)
 
                                                     if args.verbose:
                                                         print("Compiled: %s by %s" % (src, exepath))

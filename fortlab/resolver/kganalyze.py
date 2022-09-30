@@ -3,8 +3,9 @@
 
 from fortlab.kgutils import KGName, ProgramException, UserException, traverse
 from fortlab.resolver.kgparse import KGGenType, SrcFile, ResState
-from fortlab.resolver.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, Actual_Arg_Spec_List, \
-    Section_Subscript_List, Actual_Arg_Spec, Structure_Constructor_2, Proc_Component_Ref, Add_Operand
+from fortlab.resolver.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, \
+            Actual_Arg_Spec_List, Section_Subscript_List, Actual_Arg_Spec, Structure_Constructor_2, \
+            Proc_Component_Ref, Add_Operand, Array_Section
 from collections import OrderedDict
 from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
 from fortlab.resolver.block_statements import SubProgramStatement, Associate
@@ -89,7 +90,7 @@ def update_state_info(parent, config):
                                                         argidx = subpobj.args.index(kword)
 
                                                 elif isinstance(argobj, (Name, Proc_Component_Ref,
-                                                                Add_Operand, Part_Ref)):
+                                                                Add_Operand, Part_Ref, Array_Section)):
                                                     argidx = arglist.items.index(argobj)
    
                                                 else:
@@ -118,7 +119,8 @@ def update_state_info(parent, config):
                                     # get intent
                                     if argidx>=0:
                                         if argidx >= len(subpobj.args):
-                                            raise Exception("argument index exceeds the length of arg. list: %d >= %d",
+                                            #import pdb; pdb.set_trace()
+                                            raise Exception("argument index exceeds the length of arg. list: %d >= %d" ,
                                                 argidx, len(subpobj.args))
                                         argname = subpobj.args[argidx]
                                         var = subpobj.a.variables[subpobj.args[argidx]]
