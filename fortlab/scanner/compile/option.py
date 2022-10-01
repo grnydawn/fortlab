@@ -74,13 +74,16 @@ class FortranCompilerOption(App):
    
         stracecmd = b'strace -f -q -s 100000 -e trace=execve -v -- /bin/sh -c "%s"'% str.encode(buildcmd)
 
+
         try:
 
+            nprocessed = 0
             flags = {}
 
             process = subprocess.Popen(stracecmd, stdin=subprocess.PIPE, \
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
                         shell=True)
+
 
             while True:
 
@@ -127,11 +130,16 @@ class FortranCompilerOption(App):
                                                             inq.put((src, incs))
 
                                                         elif "CMakeFortranCompilerId.F" not in src:
-                                                            print("Info: %s is not saved in backup directory." % src)
+                                                            print("[Info] %s is not saved in backup directory." % src)
 
                                                     if args.verbose:
                                                         print("Compiled: %s by %s" % (src, exepath))
                                                         print(str(options))
+
+                                                    nprocessed += 1
+
+                                                    if nprocessed % 100 == 0:
+                                                        print("[Info] processed %d source files" % nprocessed)
 
                                                     #if src in flags:
                                                     #    flags[src].append((exepath, incs, macros, openmp, options))
@@ -157,7 +165,7 @@ class FortranCompilerOption(App):
         #except Exception as err:
         #    raise
         finally:
-            pass
+            print("[Info] processed total %d source files" % nprocessed)
 
         #if args.cleancmd:
         #    cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
@@ -178,6 +186,9 @@ class FortranCompilerOption(App):
 
         if args.savejson:
             jsonfile = args.savejson["_"].strip()
+
+            print("[Output JOSN file] = %s" % jsonfile)
+
             dirname = os.path.dirname(jsonfile)
 
             if dirname and not os.path.exists(dirname):

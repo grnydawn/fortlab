@@ -465,8 +465,6 @@ class FortranNameResolver(App):
             else:
                 logger.warn('Stmt does not have "unknowns" attribute: %s'%str(cs_stmt)) 
 
-        print("==== Updating state information ====")
-
         # update state info of callsite and its upper blocks
         kganalyze.update_state_info(self.config["parentblock"]['stmt'], self.config)
 

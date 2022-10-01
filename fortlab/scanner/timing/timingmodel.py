@@ -38,8 +38,6 @@ class FortranTimingCollector(App):
 
         datadir = args.datadir["_"]
 
-        print("==== Collecting timing data ====")
-
         # collect data
         etimes = {} # mpirank:omptid:invoke=[(fileid, linenum, numvisits), ... ]
         etimemin = 1.0E100

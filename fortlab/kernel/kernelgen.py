@@ -157,8 +157,6 @@ class FortranKernelGenerator(App):
         state_realpath = os.path.realpath(os.path.join(args.outdir, "state"))
         kernel_realpath = os.path.realpath(os.path.join(args.outdir, "kernel"))
 
-        print("==== Generating state data files ====")
-
         self.config["path"]["kernel_output"] = kernel_realpath
         self.config["path"]["state_output"] = state_realpath
 
@@ -189,7 +187,7 @@ class FortranKernelGenerator(App):
                 (("0", "0"), ("0", "0"), ("1", "1"))
             )
 
-        print("==== Generating kernel files ====")
+        print("==== Generating kernel files (%s) ====" % kernel_realpath)
 
         plugins = (
             ("ext.gencore", gencore_plugindir),
@@ -278,6 +276,7 @@ class FortranKernelGenerator(App):
             if klines is not None:
                 klines = remove_multiblanklines(klines)
                 kernel_files.append(filename)
+                print(filename)
                 with io.open(
                     os.path.join(kernel_realpath, filename), "w", encoding=enc
                 ) as (fd):
@@ -293,24 +292,25 @@ class FortranKernelGenerator(App):
                     ) as (fd):
                         fd.write(tounicode(slines))
 
-        with io.open(
-            os.path.join(
-                kernel_realpath, "%s.f90" % self.config["kernel_driver"]["name"]
-            ),
-            "w",
-            encoding=enc,
-        ) as (fd):
+        kdriver = "%s.f90" % self.config["kernel_driver"]["name"]
+        with io.open(os.path.join(kernel_realpath, kdriver), "w", encoding=enc,) as (fd):
             set_indent("")
             lines = driver.tostring()
             if lines is not None:
                 lines = remove_multiblanklines(lines)
                 fd.write(tounicode(lines))
 
+        print(kdriver)
+
         kernel_files.append(self.config["kernel"]["name"])
         kernel_files.append(KGUTIL)
+        print(KGUTIL)
+
         self.generate_kgen_utils(kernel_realpath, enc)
         self.generate_kernel_makefile(kernel_realpath, enc)
         kernel_files.append("Makefile")
+        print("Makefile")
+
         self.generate_state_makefile(state_realpath, enc)
         state_files.append("Makefile")
 
@@ -320,7 +320,7 @@ class FortranKernelGenerator(App):
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
 
-        print("==== Generating state data files ====")
+        print("==== Generating state data files (%s) ====" % kernel_realpath)
 
         out, err, retcode = run_shcmd("make", cwd=state_realpath)
 
@@ -885,6 +885,8 @@ class FortranKernelGenerator(App):
             self.write(f, "")
 
     def read_model(self, modeljson, config):
+
+        print("==== Collecting timing data ====")
 
         if "etime" not in modeljson:
             raise UserException("'etime' is not in model json file")
