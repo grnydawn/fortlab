@@ -7,7 +7,6 @@ from microapp import App
 from fortlab.kgutils import (UserException, ProgramException, logger, KGName, run_shcmd,
                              KgenConfigParser, traverse)
 from fortlab.resolver import kgparse
-#from kgconfig import Config
 from fortlab.resolver import statements
 
 SRCROOT = os.path.dirname(os.path.realpath(__file__))
@@ -306,17 +305,12 @@ class FortranNameResolver(App):
     def read_compile_info(self, cinfo, config):
 
         for key, value in cinfo.items():
-            #if key in [ 'type', 'rename', 'state', 'extern' ]:
             if key in [ 'type', 'macro' ]:
                 for option in Inc.options(section):
                     self.config["include"][key][option] = Inc.get(section, option).strip()
             elif key=='import':
                 for option in Inc.options(section):
                     self.config["include"][key][option] = Inc.get(section, option).strip()
-    #                subflags = OrderedDict()
-    #                for subf in Inc.get(section, option).split(','):
-    #                    subflags[subf.strip()] = None
-    #                self.config["include"][key][option] = subflags
             elif key=='include':
                 for option in Inc.options(section):
                     self.config["include"]['path'].append(option.strip())
@@ -474,52 +468,12 @@ class FortranNameResolver(App):
             if modstmt != self.config["topblock"]['stmt']:
                 kganalyze.update_state_info(moddict['stmt'], self.config)
 
-#        def jsondefault(o):
-#            with open("test.json", "w") as f:
-#                ll = []
-#                import pdb; pdb.set_trace()
-#                for i, c in enumerate(o.content):
-#                    print("TTTT", i)
-#                    ll.append(json.dump(f, c))
-
         if args.keep:
             print("Saving AST feature is not supported yet.")
-#            output_file = open(args.save["_"], 'w')
-#            json.dump(self.config, output_file, indent=4, separators=(',', ': '), default=jsondefault)
-#            output_file.write('\n')
-#            output_file.close()
-
-            #opts = ["@analysis", "-o", args.["_"]]
-            #ret, fwds = self.run_subapp("dict2json", opts, forward={"analysis": self.config})
-            #assert ret == 0, "dict2json returned non-zero code during analysis saving."
 
         self.add_forward(analysis=self.config)
 
-#
-#    def add_geninfo_ancestors(self, stmt):
-#        from block_statements import EndStatement
-#
-#        ancs = stmt.ancestors()
-#
-#        prevstmt = stmt
-#        prevname = None
-#
-#        for anc in reversed(ancs):
-#            if not hasattr(anc, 'geninfo'):
-#                anc.geninfo = OrderedDict()
-#            if len(anc.content)>0 and isinstance(anc.content[-1], EndStatement) and \
-#                not hasattr(anc.content[-1], 'geninfo'):
-#                anc.content[-1].geninfo = OrderedDict()
-#
-#            if prevname:
-#                dummy_req = kgparse.ResState(kgparse.KGGenType.STATE_IN, kgutils.KGName(prevname), None, [anc])
-#                dummy_req.res_stmts = [ prevstmt ]
-#                anc.check_spec_stmts(dummy_req.uname, dummy_req)
-#
-#            if hasattr(anc, 'name'): prevname = anc.name
-#            else: prevname = None
-#            prevstmt = anc
-#
+
     def add_geninfo_ancestors(self, stmt):
         from fortlab.resolver.block_statements import EndStatement
 
@@ -577,13 +531,9 @@ class FortranNameResolver(App):
                     with open(mpifpath, 'r') as f:
                         filelines = f.read().split('\n')
                         lines = '\n'.join(handle_include(os.path.dirname(mpifpath), filelines, self.config))
-                        #reader = FortranStringReader(lines)
                     tree = api.parse(lines, ignore_comments=True, analyze=False, isfree=True, isstrict=False, include_dirs=None, source_only=None )
                     for stmt, depth in api.walk(tree, -1):
                         stmt.parse_f2003()
-
-                    #import pdb; pdb.set_trace()
-                    #spec = Specification_Part(reader)
                     bag = {}
                     config_name_mapping = [
                         ('comm', 'MPI_COMM_WORLD'),
@@ -934,16 +884,6 @@ class FortranNameResolver(App):
                 line = line["_"]
                 for comp in line.split(','):
                     self.config['rebuild'][comp] = True
-#
-#        if opts.cmd_clean:
-#            self.config['cmd_clean']['cmds'] = dequote(opts.cmd_clean["_"])
-#
-#
-#        if opts.cmd_build:
-#            self.config['cmd_build']['cmds'] = dequote(opts.cmd_build["_"])
-#
-#        if opts.cmd_run:
-#            self.config['cmd_run']['cmds'] = dequote(opts.cmd_run["_"])
 
         if opts.state_switch:
             for line in opts.state_switch:

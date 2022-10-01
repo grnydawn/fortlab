@@ -37,7 +37,6 @@ class MicroappBuildScanner(App):
             self.add_forward(data=strace_data)
             return
 
-        #cmd = ["compileroption", args.buildcmd["_"]]
         opts = [args.buildcmd["_"]]
 
         if args.cleancmd:
@@ -170,8 +169,6 @@ class MicroappRunScanner(App):
             with open('%s/__data__/modeltypes' % modeldir, 'w') as f:
                 json.dump(mtypes, f)
 
-            # TODO: wait if needed
-
             ret, fwds = self.combine_model(modeldir)
             assert ret == 0, "combine_model returned non-zero code."
 
@@ -189,9 +186,6 @@ class MicroappRunScanner(App):
 
     def combine_model(self, modeldir):
 
-        #cmd = ["modelcombine", modeldir]
-
-        #return self.manager.run_command(cmd)
         return self.run_subapp("modelcombine", [modeldir])
 
     def scan_timing(self, args, modeldir, mtypes, config):
@@ -211,7 +205,6 @@ class MicroappRunScanner(App):
 
         plugin_config["current"].update(self.config)
 
-        #cmd = ["timinggen", "@analysis"]
         opts = ["@analysis"]
 
 
@@ -230,12 +223,10 @@ class MicroappRunScanner(App):
         if args.no_cache:
             opts += ["--no-cache"]
 
-        #ret, fwds = self.manager.run_command(cmd, forward={"analysis": config})
         ret, fwds = self.run_subapp("timinggen", opts, forward={"analysis": config})
         assert ret == 0, "timinggen returned non-zero code."
 
         etimedir = fwds["etimedir"]
-        #cmd = "shell 'cd %s; make; make recover' --useenv" % fwds["etimedir"]
         opts = ["'make'" , "--useenv", "--workdir", etimedir]
         ret, fwds = self.run_subapp("shell", opts)
         assert ret == 0, "shell make returned non-zero code: %s" % fwds['stderr']
@@ -274,18 +265,11 @@ class MicroappModelCombiner(App):
 
                 if os.path.isdir(scandir) and len(os.listdir(scandir)):
                     collector = mtypes["collectmap"][scanid]
-                    #cmd = collector + " " + scandir
-                    #ret, fwds = self.manager.run_command(cmd)
                     ret, fwds = self.run_subapp(collector, [scandir])
                     assert ret == 0, "%s returned non-zero code." % collector
                     assert "data" in fwds, "No data is defined in %s." % collector
                     assert fwds["data"], "No %s data is collected." % collector
 
                     model[scanname] = fwds['data']
-                    #combiner = mtypes["combinemap"][scanid]
-                    #cmd = combiner + " @data"
-                    #ret, fwds = self.manager.run_command(cmd,
-                    #ret, fwds = self.run_subapp(combiner, ["@data"],
-                    #                forward={"data": fwds["data"]})
 
         self.add_forward(model=model)

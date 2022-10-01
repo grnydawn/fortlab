@@ -9,14 +9,10 @@ Module content
 from fortlab.kgutils import show_tree, logger
 from fortlab.resolver.kgparse import KGGenType
 import fortlab.resolver.Fortran2003 as Fortran2003
-#from typedecl_statements import TypeDeclarationStatement, TypeStmt, Procedure # TEEMP
 from fortlab.resolver.typedecl_statements import TypeDeclarationStatement, TypeStmt
 from fortlab.resolver.block_statements import Type, TypeDecl, Function, Subroutine, Interface, execution_part, Associate
 from fortlab.resolver.statements import External, Common, SpecificBinding, Enumerator
 from collections import OrderedDict
-
-#import logging
-#logger = logging.getLogger('kgen')
 
 res_default = [ TypeDeclarationStatement ]
 #res_external = [ External, Procedure ] # TEMP

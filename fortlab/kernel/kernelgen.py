@@ -1,9 +1,3 @@
-# uncompyle6 version 3.7.2
-# Python bytecode 2.7 (62211)
-# Decompiled from: Python 3.6.9 (default, Apr 18 2020, 01:56:04)
-# [GCC 8.4.0]
-# Embedded file name: /home/grnydawn/repos/github/fortlab/fortlab/kernel/kernelgen.py
-# Compiled at: 2020-07-13 10:26:24
 import os, io, locale, math, random, datetime
 
 from collections import OrderedDict
@@ -132,10 +126,6 @@ class FortranKernelGenerator(App):
                             self.config['model']['types']['code'][split_popt[0]] = int(split_copt[1])
                         else:
                             raise UserException('Unknown code-coverage flag option: %s' % copt)
-
-            # enable coverage feature at extractor
-            #if self.config['model']['types']['code']['enabled']:
-            #    self.config['plugin']['priority']['ext.coverage'] = '%s/plugins/coverage'%KGEN_EXT
 
     def perform(self, args):
 
@@ -324,9 +314,6 @@ class FortranKernelGenerator(App):
 
         out, err, retcode = run_shcmd("make", cwd=state_realpath)
 
-        #if retcode != 0:
-        #    print("ERROR: state make error")
-
         out, err, retcode = run_shcmd("make recover", cwd=state_realpath)
 
         if retcode != 0:
@@ -443,9 +430,6 @@ class FortranKernelGenerator(App):
                 opts = (
                     opts + " " + self.config["include"]["compiler"]["compiler_options"]
                 )
-
-            #if "compiler_options" in kfile and kfile["compiler_options"]:
-            #    opts = opts + " " + kfile["compiler_options"]
 
             if "options" in kfile and kfile["options"]:
                 opts = opts + " " + " ".join(kfile["options"])
@@ -916,9 +900,6 @@ class FortranKernelGenerator(App):
                 for threadnum, d2 in d1.items():
                     for invokenum, (start, stop) in d2.items():
 
-            #for opt in cfg.options("elapsedtime.elapsedtime"):
-            #    ranknum, threadnum, invokenum = tuple(num for num in opt.split())
-            #    start, stop = cfg.get("elapsedtime.elapsedtime", opt).split(",")
                         estart = float(start)
                         eend = float(stop)
                         etimeval = eend - estart
@@ -1029,6 +1010,3 @@ class FortranKernelGenerator(App):
             )
 
         return
-
-
-# okay decompiling kernelgen.pyc

@@ -1,15 +1,11 @@
 '''KGen parser
 '''
 import os, io, locale
-#import os.path
 from fortlab.kgutils import UserException, pack_exnamepath, match_namepath, traverse, run_shcmd, logger
 from fortlab.resolver.statements import Comment
 from fortlab.resolver.block_statements import Module, Program
 from fortlab.resolver import api
 from collections import OrderedDict
-
-#import logging
-#logger = logging.getLogger('kgen')
 
 #############################################################################
 ## RESOLUTION TYPE
