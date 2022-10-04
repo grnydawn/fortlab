@@ -621,6 +621,7 @@ class FortranNameResolver(App):
 
         if opts.include_ini:
             self.config['include']['opt'] = opts.include_ini["_"]
+            self.process_include_option()
 
         if opts.exclude_ini:
             self.process_exclude_option(opts.exclude_ini["_"], self.config['exclude'])
