@@ -1,9 +1,3 @@
-# uncompyle6 version 3.7.2
-# Python bytecode 2.7 (62211)
-# Decompiled from: Python 3.6.9 (default, Apr 18 2020, 01:56:04)
-# [GCC 8.4.0]
-# Embedded file name: /home/grnydawn/repos/github/fortlab/fortlab/kernel/kernelgen.py
-# Compiled at: 2020-07-13 10:26:24
 import os, io, locale, math, random, datetime
 
 from collections import OrderedDict
@@ -133,10 +127,6 @@ class FortranKernelGenerator(App):
                         else:
                             raise UserException('Unknown code-coverage flag option: %s' % copt)
 
-            # enable coverage feature at extractor
-            #if self.config['model']['types']['code']['enabled']:
-            #    self.config['plugin']['priority']['ext.coverage'] = '%s/plugins/coverage'%KGEN_EXT
-
     def perform(self, args):
 
         self.config = args.analysis["_"]
@@ -186,6 +176,8 @@ class FortranKernelGenerator(App):
             self.config["invocation"]["triples"].append(
                 (("0", "0"), ("0", "0"), ("1", "1"))
             )
+
+        print("==== Generating kernel files (%s) ====" % kernel_realpath)
 
         plugins = (
             ("ext.gencore", gencore_plugindir),
@@ -274,6 +266,7 @@ class FortranKernelGenerator(App):
             if klines is not None:
                 klines = remove_multiblanklines(klines)
                 kernel_files.append(filename)
+                print(filename)
                 with io.open(
                     os.path.join(kernel_realpath, filename), "w", encoding=enc
                 ) as (fd):
@@ -289,24 +282,25 @@ class FortranKernelGenerator(App):
                     ) as (fd):
                         fd.write(tounicode(slines))
 
-        with io.open(
-            os.path.join(
-                kernel_realpath, "%s.f90" % self.config["kernel_driver"]["name"]
-            ),
-            "w",
-            encoding=enc,
-        ) as (fd):
+        kdriver = "%s.f90" % self.config["kernel_driver"]["name"]
+        with io.open(os.path.join(kernel_realpath, kdriver), "w", encoding=enc,) as (fd):
             set_indent("")
             lines = driver.tostring()
             if lines is not None:
                 lines = remove_multiblanklines(lines)
                 fd.write(tounicode(lines))
 
+        print(kdriver)
+
         kernel_files.append(self.config["kernel"]["name"])
         kernel_files.append(KGUTIL)
+        print(KGUTIL)
+
         self.generate_kgen_utils(kernel_realpath, enc)
         self.generate_kernel_makefile(kernel_realpath, enc)
         kernel_files.append("Makefile")
+        print("Makefile")
+
         self.generate_state_makefile(state_realpath, enc)
         state_files.append("Makefile")
 
@@ -316,10 +310,9 @@ class FortranKernelGenerator(App):
         if self.config["state_switch"]["clean"]:
             run_shcmd(self.config["state_switch"]["clean"])
 
-        out, err, retcode = run_shcmd("make", cwd=state_realpath)
+        print("==== Generating state data files (%s) ====" % kernel_realpath)
 
-        if retcode != 0:
-            print("ERROR: state make error")
+        out, err, retcode = run_shcmd("make", cwd=state_realpath)
 
         out, err, retcode = run_shcmd("make recover", cwd=state_realpath)
 
@@ -437,9 +430,6 @@ class FortranKernelGenerator(App):
                 opts = (
                     opts + " " + self.config["include"]["compiler"]["compiler_options"]
                 )
-
-            #if "compiler_options" in kfile and kfile["compiler_options"]:
-            #    opts = opts + " " + kfile["compiler_options"]
 
             if "options" in kfile and kfile["options"]:
                 opts = opts + " " + " ".join(kfile["options"])
@@ -880,6 +870,8 @@ class FortranKernelGenerator(App):
 
     def read_model(self, modeljson, config):
 
+        print("==== Collecting timing data ====")
+
         if "etime" not in modeljson:
             raise UserException("'etime' is not in model json file")
 
@@ -908,9 +900,6 @@ class FortranKernelGenerator(App):
                 for threadnum, d2 in d1.items():
                     for invokenum, (start, stop) in d2.items():
 
-            #for opt in cfg.options("elapsedtime.elapsedtime"):
-            #    ranknum, threadnum, invokenum = tuple(num for num in opt.split())
-            #    start, stop = cfg.get("elapsedtime.elapsedtime", opt).split(",")
                         estart = float(start)
                         eend = float(stop)
                         etimeval = eend - estart
@@ -1021,6 +1010,3 @@ class FortranKernelGenerator(App):
             )
 
         return
-
-
-# okay decompiling kernelgen.pyc

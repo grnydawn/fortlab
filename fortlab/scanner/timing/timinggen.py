@@ -59,10 +59,12 @@ class FortranTimingGenerator(App):
 
         srcfiles = OrderedDict()
 
-        #etimedir = os.path.join(args.outdir, "etime")
-
         model_realpath = os.path.realpath(os.path.join(args.outdir, "model"))
         etime_realpath = os.path.realpath(os.path.join(args.outdir, "etime"))
+
+        print("==== Generating timing raw data ====")
+        print("[timing instrumentation directory] = %s" % etime_realpath)
+        print("[timing output directory] = %s" % model_realpath)
 
         self.add_forward(etimedir=etime_realpath, modeldir=model_realpath)
 
@@ -103,13 +105,6 @@ class FortranTimingGenerator(App):
                     self.config["used_srcfiles"][filepath] = (sfile, mods_used, units_used)
 
 
-#                here = os.path.dirname(os.path.realpath(__file__))
-#                etime_plugindir = os.path.join(here, "plugins", "gencore")
-#
-#                self.config["path"]["model_path"] = model_realpath 
-#
-#                init_plugins([KERNEL_ID_0], {'etime.gencore': etime_plugindir}, self.config)
-
             # process each nodes in the tree
             for plugin_name in event_register.keys():
                 if not plugin_name.startswith('etime'): continue
@@ -137,9 +132,8 @@ class FortranTimingGenerator(App):
 
             # generate source files from each node of the tree
             etime_files = []
-            #import pdb; pdb.set_trace()
+
             for sfile, filepath in self.genfiles:
-                #import pdb; pdb.set_trace()
                 filename = os.path.basename(filepath)
                 if sfile.used4etime:
                     set_indent('')
@@ -203,11 +197,6 @@ class FortranTimingGenerator(App):
 
         if not cfg.has_option(GEN, modeltype):
             cfg.set(GEN, modeltype, ', '.join(sections))
-#
-#        for sec in sections:
-#            secname = '%s.%s'%(modeltype, sec)
-#            if not cfg.has_section(secname):
-#                cfg.add_section(secname)
 
         with io.open(modelfile, mode) as mf:
             cfg.write(mf)

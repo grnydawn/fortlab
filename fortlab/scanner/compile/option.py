@@ -40,8 +40,10 @@ class FortranCompilerOption(App):
 
     def perform(self, args):
 
+
         buildcmd = args.buildcmd["_"]
 
+        print("==== Collecting compiler flags (%s) ====" % buildcmd)
 
         cwd = orgcwd = os.getcwd()
 
@@ -61,6 +63,8 @@ class FortranCompilerOption(App):
         if not os.path.exists(backupdir):
             os.makedirs(backupdir)
 
+        print("[Source backup directory] = %s" % backupdir)
+
         inq = multiprocessing.Queue()
         outq = multiprocessing.Queue()
         proc = multiprocessing.Process(target=self.get_includes, args=(backupdir, inq, outq))
@@ -70,13 +74,16 @@ class FortranCompilerOption(App):
    
         stracecmd = b'strace -f -q -s 100000 -e trace=execve -v -- /bin/sh -c "%s"'% str.encode(buildcmd)
 
+
         try:
 
+            nprocessed = 0
             flags = {}
 
             process = subprocess.Popen(stracecmd, stdin=subprocess.PIPE, \
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, \
                         shell=True)
+
 
             while True:
 
@@ -122,17 +129,18 @@ class FortranCompilerOption(App):
                                                         if os.path.isfile(src):
                                                             inq.put((src, incs))
 
-                                                        else:
-                                                            print("Warning: %s is not backuped" % src)
+                                                        elif "CMakeFortranCompilerId.F" not in src:
+                                                            print("[Info] %s is not saved in backup directory." % src)
 
                                                     if args.verbose:
                                                         print("Compiled: %s by %s" % (src, exepath))
                                                         print(str(options))
 
-                                                    #if src in flags:
-                                                    #    flags[src].append((exepath, incs, macros, openmp, options))
-                                                    #else:
-                                                    #    flags[src] = [ (exepath, incs, macros, openmp, options) ]
+                                                    nprocessed += 1
+
+                                                    if nprocessed % 100 == 0:
+                                                        print("[Info] processed %d source files" % nprocessed)
+
                                 except Exception as err:
                                     raise
                                     pass
@@ -150,38 +158,25 @@ class FortranCompilerOption(App):
             proc.join()
 
 
-        #except Exception as err:
-        #    raise
         finally:
-            pass
-
-        #if args.cleancmd:
-        #    cleancmd_output = subprocess.check_output(args.cleancmd["_"], shell=True)
+            print("[Info] processed total %d source files" % nprocessed)
 
         for fname, backups in backupsrcs.items():
             flags[fname]["srcbackup"].extend(backups)
 
         self.add_forward(data=flags)
-#
-#                    if option=='include':
-#                        pathlist = Inc.get(section, option).split(':')
-#                        self.config["include"]['file'][realpath]['path'].extend(pathlist)
-#                    elif option in [ 'compiler', 'compiler_options' ]:
-#                        self.config["include"]['file'][realpath][option] = Inc.get(section, option)
-#                    else:
-#                        self.config["include"]['file'][realpath]['macro'][option] = Inc.get(section, option)
-#
 
         if args.savejson:
             jsonfile = args.savejson["_"].strip()
+
+            print("[Output JOSN file] = %s" % jsonfile)
+
             dirname = os.path.dirname(jsonfile)
 
             if dirname and not os.path.exists(dirname):
                 os.makedirs(dirname)
 
-            #cmd = ["dict2json", "@flags", "-o", jsonfile]
             opts = ["@flags", "-o", jsonfile]
-            #self.manager.run_command(cmd, forward={"flags": flags})
             ret, fwds = self.run_subapp("dict2json", opts, forward={"flags": flags})
             assert ret == 0, "dict2json returned non-zero code."
 

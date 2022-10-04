@@ -14,17 +14,4 @@ class FortranStateGenerator(App):
     
     def perform(self, args):
 
-        self.config = args.analysis["_"]
-
-        # create directory if needed
-        args.outdir = args.outdir["_"] if args.outdir else os.getcwd()
-
-        if not os.path.exists(args.outdir):
-            os.makedirs(args.outdir)
-
-        import pdb; pdb.set_trace()
-        state_realpath = os.path.realpath(os.path.join(args.outdir, "state"))
-
-        self.add_forward(statedir=state_realpath)
-
-
+        raise("stategen is not implemented yet.")
