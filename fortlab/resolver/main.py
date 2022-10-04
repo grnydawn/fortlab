@@ -1,5 +1,5 @@
 
-import sys, os, json, re
+import sys, os, json, re, shutil
 
 from collections import OrderedDict
 
@@ -579,6 +579,9 @@ class FortranNameResolver(App):
             print('ERROR: cpp is not found.')
             sys.exit(-1)
 
+        if opts.outdir:
+            self.config['path']['outdir'] = opts.outdir["_"]
+
         # parsing intrinsic skip option
         if opts.intrinsic:
             subflags = []
@@ -742,9 +745,6 @@ class FortranNameResolver(App):
                 for param in param_split[:-1]:
                     curdict = curdict[param]
                 exec('curdict[param_split[-1]] = value_split')
-
-        if opts.outdir:
-            self.config['path']['outdir'] = opts.outdir["_"]
 
         if opts.machinefile:
             if os.path.exists(opts.machinefile["_"]):
