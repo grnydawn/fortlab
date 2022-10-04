@@ -23,7 +23,7 @@ copyright = '2021, Youngsung Kim'
 author = 'Youngsung Kim'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.15'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 
