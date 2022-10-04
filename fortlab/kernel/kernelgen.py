@@ -488,7 +488,7 @@ class FortranKernelGenerator(App):
                     lib = "-l" + import_type[pos1 + 1 : pos2].strip()
                     link_flags += " %s %s" % (inc, lib)
 
-                elif import_type == "static-library":
+                elif import_type == "static_library":
                     link_flags += " %s" % path
 
                 elif import_type == "object":
