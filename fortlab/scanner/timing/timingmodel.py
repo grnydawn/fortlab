@@ -2,7 +2,12 @@
 
 import os, shutil, multiprocessing
 
-from collections import Mapping
+try:
+    from collections import Mapping
+except:
+    from collections.abc import Mapping
+
+
 
 from microapp import App, register_appclass, unregister_appclass
 
