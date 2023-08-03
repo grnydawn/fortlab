@@ -2651,7 +2651,8 @@ class Else(Statement):
     def process_item(self):
         item = self.item
         self.name = item.get_line()[4:].strip()
-        parent_name = getattr(self.parent,'name','')
+        #parent_name = getattr(self.parent,'name','') # KGEN deletion
+        parent_name = getattr(self.parent,'construct_name','') # KGEN addition
         if self.name and self.name!=parent_name:
             self.warning('expected if-construct-name %r but got %r, skipping.'\
                          % (parent_name, self.name))
