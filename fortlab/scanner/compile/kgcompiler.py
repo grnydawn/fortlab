@@ -112,8 +112,8 @@ class GenericFortranCompiler(GenericCompiler):
 
 class IntelFortranCompiler(GenericFortranCompiler):
     compid = 'ifort'
-    compnames = ['ifort']
-    openmp_opt = [ r'-openmp' ]
+    compnames = ['ifort', 'ifx']
+    openmp_opt = [ r'-qopenmp' ]
     fpp = '-fpp'
 
     discard_opts_arg = [ '-module' ]
