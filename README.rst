@@ -3,10 +3,8 @@
 FortLab: Kernel Extraction and Tool Development Framework for Fortran Applications.
 ======================================================================================
 
-**FortLab** is a Python framework that makets it easy for users to create a kernel-based tools for Fortran applications. With FortLab, user can extract a part of Fortran software and make it a stand-alone software. In addition, users can use its built-in functions to build their own kernel-based analysis tools.
+**FortLab** is a Python framework that makes it easy for users to create a kernel-based tools for Fortran applications. With FortLab, user can extract a part of Fortran software and make it a stand-alone software. In addition, users can use its built-in functions to build their own kernel-based analysis tools.
 
-
-FortLab documentation: `https://fortlab.readthedocs.io <https://fortlab.readthedocs.io/>`_
 
 Installation
 -------------
@@ -21,5 +19,8 @@ You can install fortlab from github code repository if you want to try the lates
         >>> cd fortlab
         >>> python setup.py install
 
-Usage
+Manual
 -----------
+
+FortLab documentation: `https://fortlab.readthedocs.io <https://fortlab.readthedocs.io/>`_
+
