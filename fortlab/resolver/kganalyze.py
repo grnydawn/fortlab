@@ -5,7 +5,7 @@ from fortlab.kgutils import KGName, ProgramException, UserException, traverse
 from fortlab.resolver.kgparse import KGGenType, SrcFile, ResState
 from fortlab.resolver.Fortran2003 import Name, Call_Stmt, Function_Reference, Part_Ref, Interface_Stmt, \
             Actual_Arg_Spec_List, Section_Subscript_List, Actual_Arg_Spec, Structure_Constructor_2, \
-            Proc_Component_Ref, Add_Operand, Array_Section
+            Proc_Component_Ref, Add_Operand, Array_Section, Data_Ref
 from collections import OrderedDict
 from fortlab.resolver.typedecl_statements import TypeDeclarationStatement
 from fortlab.resolver.block_statements import SubProgramStatement, Associate
@@ -90,12 +90,13 @@ def update_state_info(parent, config):
                                                         argidx = subpobj.args.index(kword)
 
                                                 elif isinstance(argobj, (Name, Proc_Component_Ref,
-                                                                Add_Operand, Part_Ref, Array_Section)):
+                                                                Add_Operand, Part_Ref, Array_Section, Data_Ref)):
                                                     argidx = arglist.items.index(argobj)
    
                                                 else:
-                                                    import pdb; pdb.set_trace()
-                                                    raise Exception("Not implemented to handle: %s", argobj.__class__.__name__)
+                                                    print("ARGOBJ: %s" % argobj)
+                                                    print("ARGLIST: %s" % arglist.items)
+                                                    raise Exception("Not implemented to handle: %s" % argobj.__class__.__name__)
                                             else:
                                                 argidx = 0
                                         elif anc.__class__ == Part_Ref:
