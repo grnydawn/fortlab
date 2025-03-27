@@ -1075,6 +1075,10 @@ def search_Specific_Binding(stmt, node, config, gentype=None):
         else:
             get_name_or_defer(stmt, node.items[3], res_subprogram, config)
 
+def search_Final_Binding(stmt, node, config, gentype=None):
+    """ Identifying a name in Final_Binding node"""
+    get_name_or_defer(stmt, node.items[1], res_subprogram, config)
+
 def search_Binding_Attr(stmt, node, config, gentype=None):
     """ Identifying a name in Binding_Attr node"""
     pass
