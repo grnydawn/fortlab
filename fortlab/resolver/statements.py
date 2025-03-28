@@ -2535,6 +2535,15 @@ class FinalBinding(StatementWithNamelist):
     stmtname = 'final'
     match = re.compile(r'final\b', re.I).match
 
+    # start of KGEN addition
+    def tokgen(self):
+        return 'FINAL :: ' + ', '.join(self.items)
+
+    def analyze(self):
+        return
+
+    # end of KGEN addition
+
 class Allocatable(Statement):
     """
     ALLOCATABLE [ :: ] <object-name> [ ( <deferred-shape-spec-list> ) ] [ , <object-name> [ ( <deferred-shape-spec-list> ) ] ]...

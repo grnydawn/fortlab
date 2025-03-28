@@ -204,8 +204,10 @@ class Pattern(object):
 letter = Pattern('<letter>','[A-Z]',flags=re.I)
 if dollar_ok:
     name = Pattern('<name>', r'[A-Z][\w$]*',flags=re.I)
+    name_kind = Pattern('<name>', r'[A-Z][\w_$]*',flags=re.I)
 else:
     name = Pattern('<name>', r'[A-Z]\w*',flags=re.I)
+    name_kind = Pattern('<name>', r'[A-Z][\w_]*',flags=re.I)
 digit = Pattern('<digit>',r'\d')
 underscore = Pattern('<underscore>', '_')
 binary_digit = Pattern('<binary-digit>',r'[01]')
@@ -226,7 +228,8 @@ alphanumeric_character = Pattern('<alphanumeric-character>',r'\w') # [A-Z0-9_]
 special_character = Pattern('<special-character>',r'[ =+-*/\()[\]{},.:;!"%&~<>?,\'`^|$#@]')
 character = alphanumeric_character | special_character
 
-kind_param = digit_string | name
+#kind_param = digit_string | name KGEN delete
+kind_param = digit_string | name | name_kind # KGEN add
 kind_param_named = kind_param.named('kind-param')
 signed_digit_string = ~sign + digit_string
 int_literal_constant = digit_string + ~('_' + kind_param)
